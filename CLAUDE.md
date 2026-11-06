@@ -60,6 +60,12 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/pages/Pairing.tsx` – Name, Paar anlegen (Einladungscode) oder mit Code beitreten; wartet per Realtime auf den Partner
 - `App.tsx` – Weiche: Laden → Login → Paar-Verknüpfung → App (erst wenn beide verbunden sind)
 - `supabase/migrations/0001_paare_und_profile.sql` – Tabellen `profiles`, `couples`, RLS, Funktionen `create_couple()`, `join_couple(code)`, `my_couple_id()`
+- `supabase/migrations/0002_erinnerungen.sql` – `places`, `moments`, `countdowns`, `bucket_items`, `date_ideas`, `wishes`, privater Storage-Bucket `memories` (Ordner = couple_id), `seed_date_ideas()` (40 Start-Ideen), `toggle_wish_fulfilled(wish)`
+- `src/lib/useCoupleTable.ts` – Hook für Paar-Tabellen: laden, live synchron halten (Realtime + bei Rückkehr in die App), insert/update/remove
+- `src/lib/photos.ts` – Fotos verkleinern (max. 1600 px JPEG), hochladen, löschen, signierte URLs (`usePhotoUrl`); `src/lib/dates.ts` – Datums-Helfer; `src/lib/types.ts` – Zeilen-Typen
+- Bausteine: `Sheet` (Bottom-Sheet), `SubHeader` (Zurück/Titel/Plus), `Photo`/`PhotoField`, `Empty`, `ConfirmButton` (2× tippen zum Löschen), `HeartBurst` (Herz-Konfetti)
+- `src/pages/Erinnerungen.tsx` – Übersicht des Bereichs (Navigation „Erinnerungen" → `/erinnerungen`)
+- `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab)
 - `src/styles.css` – gesamtes Styling
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
@@ -88,9 +94,9 @@ Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre.
 1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit 14 Platzhalterseiten, Design-System umgesetzt
 2. ✅ Supabase einrichten: Datenbank-Schema + Row Level Security
 3. ✅ Login (E-Mail + Passwort) und Paar-Verknüpfung per Einladungscode
-4. Hosting auf Cloudflare Pages, Installation auf beiden iPhones testen
+4. ✅ Hosting auf Cloudflare (Installation auf beiden iPhones noch testen)
 5. Web Push (Service Worker + Edge Function, VAPID-Schlüssel)
-6. Features einzeln: Einkaufsliste & To-dos → Liebesnotizen → Tage-Zähler → Kalender → Chat → Foto-Timeline → Weltkarte → Doodle → Frage des Tages → Bucket List → Date-Ideen → Sprachnachrichten → Quiz
+6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) → offen: Einkaufsliste & To-dos, Kalender, Liebesnotizen, Chat, Doodle, Frage des Tages, Sprachnachrichten, Quiz
 
 ## Befehle
 - `npm install` – Abhängigkeiten installieren

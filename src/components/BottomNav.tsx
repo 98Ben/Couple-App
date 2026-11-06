@@ -9,7 +9,7 @@ const items: { key: NavKey; label: string; icon: IconName; to: string }[] = [
   { key: 'start', label: 'Start', icon: 'home', to: '/' },
   { key: 'alltag', label: 'Alltag', icon: 'checklist', to: '/#alltag' },
   { key: 'nachrichten', label: 'Nachrichten', icon: 'chat', to: '/#nachrichten' },
-  { key: 'erinnerungen', label: 'Erinnerungen', icon: 'photos', to: '/#erinnerungen' },
+  { key: 'erinnerungen', label: 'Erinnerungen', icon: 'photos', to: '/erinnerungen' },
 ];
 
 /** Schwebende Navigation („Floating Island") am unteren Rand. */

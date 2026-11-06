@@ -3,7 +3,7 @@
 Alles im Supabase-Dashboard deines Projekts `couple-app`.
 
 ## 1. Datenbank anlegen
-**SQL Editor → New query**, den kompletten Inhalt von `migrations/0001_paare_und_profile.sql` einfügen und **Run** drücken.
+**SQL Editor → New query**, den kompletten Inhalt jeder Datei aus `migrations/` einfügen und **Run** drücken, in der Reihenfolge der Nummern (0001, 0002, …). Neue Dateien kommen dazu, wenn neue Features gebaut werden.
 Es sollte „Success. No rows returned" erscheinen. Die Datei darf mehrfach ausgeführt werden.
 
 ## 2. Bestätigungsmail ausschalten

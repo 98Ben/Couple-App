@@ -119,7 +119,7 @@ export const features: Feature[] = [
     short: 'Unsere Orte',
     icon: 'globe',
     group: 'erinnerungen',
-    status: 'geplant',
+    status: 'fertig',
     planned: [
       'Orte auf der Karte markieren, z. B. erster Kuss oder erstes Date',
       'Pro Ort: Foto, Titel, Datum und Notiz',
@@ -132,7 +132,7 @@ export const features: Feature[] = [
     short: 'Momente sammeln',
     icon: 'photos',
     group: 'erinnerungen',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Fotos mit Datum und Text', 'Zeitstrahl eurer Beziehung', '„An diesem Tag vor X Jahren"'],
   },
   {
@@ -141,7 +141,7 @@ export const features: Feature[] = [
     short: 'Countdowns',
     icon: 'hourglass',
     group: 'erinnerungen',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Tage zusammen', 'Countdowns zum nächsten Treffen, Urlaub oder Jahrestag', 'Meilensteine wie 1.000 Tage'],
   },
   {
@@ -150,7 +150,7 @@ export const features: Feature[] = [
     short: 'Was wir vorhaben',
     icon: 'sparkle',
     group: 'erinnerungen',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Gemeinsame Wünsche und Ziele', 'Abhaken mit Foto als Erinnerung', 'Kategorien wie Reisen oder Erlebnisse'],
   },
   {
@@ -159,7 +159,7 @@ export const features: Feature[] = [
     short: 'Würfeln & Wünsche',
     icon: 'dice',
     group: 'erinnerungen',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Ideen sammeln', 'Zufallsgenerator „Was machen wir heute?"', 'Wunschliste mit versteckten Geschenkideen'],
   },
 
