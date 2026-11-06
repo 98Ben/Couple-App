@@ -5,6 +5,7 @@ import HeartBurst from '../../components/HeartBurst';
 import SubHeader from '../../components/SubHeader';
 import { deutscherFehler, useAuth } from '../../lib/auth';
 import { formatDate } from '../../lib/dates';
+import { notifyPartner } from '../../lib/push';
 import { supabase } from '../../lib/supabase';
 import type { Answer } from '../../lib/types';
 import { Icon } from '../../icons/Icon';
@@ -87,6 +88,7 @@ export default function FrageDesTages() {
     const { error } = await supabase.rpc('answer_today', { answer: text.trim() });
     if (error) setError(deutscherFehler(error.message));
     else {
+      notifyPartner('answer');
       setText('');
       setJustRevealed(true);
       revealTimer.current = window.setTimeout(() => setJustRevealed(false), 2500);

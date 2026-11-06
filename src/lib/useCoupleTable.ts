@@ -1,6 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth';
+import { notifyPartner, type PushKind } from './push';
 import { supabase } from './supabase';
+
+// Neue Einträge in diesen Tabellen benachrichtigen den Partner
+function pushFor(table: string, row: Record<string, unknown>): [PushKind, string | null] | null {
+  switch (table) {
+    case 'love_notes':
+      return row.doodle_path ? ['doodle', (row.text as string) ?? null] : ['note', (row.text as string) ?? null];
+    case 'moments':
+      return ['moment', row.title as string];
+    case 'places':
+      return ['place', row.title as string];
+    case 'countdowns':
+      return ['countdown', row.title as string];
+    case 'wishes':
+      return ['wish', row.text as string];
+    case 'bucket_items':
+      return ['bucket', row.title as string];
+    default:
+      return null;
+  }
+}
 
 type Order = { column: string; ascending?: boolean };
 
@@ -51,6 +72,8 @@ export function useCoupleTable<T extends { id: string }>(table: string, order: O
     async (values: Partial<T>) => {
       const { data, error } = await supabase.from(table).insert(values as never).select().single();
       if (error) return { data: null as T | null, error: 'Speichern hat nicht geklappt. Bist du online?' as string | null };
+      const push = pushFor(table, data as Record<string, unknown>);
+      if (push) notifyPartner(push[0], push[1]);
       await load();
       return { data: data as T, error: null as string | null };
     },

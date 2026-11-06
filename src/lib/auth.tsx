@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { forgetDevice, refreshPushSubscription } from './push';
 import { supabase } from './supabase';
 
 export type Profile = { id: string; display_name: string | null; couple_id: string | null };
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const uid = s.user.id;
+    refreshPushSubscription();
     // RLS liefert nur das eigene Profil und das des Partners
     const { data: profiles } = await supabase.from('profiles').select('id, display_name, couple_id');
     const mine = profiles?.find((p) => p.id === uid) ?? null;
@@ -66,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => loadData(session), [loadData, session]);
   const signOut = useCallback(async () => {
+    await forgetDevice();
     await supabase.auth.signOut();
   }, []);
 

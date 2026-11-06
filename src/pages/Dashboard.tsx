@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import BottomNav, { type NavKey } from '../components/BottomNav';
 import DaysCounter from '../components/DaysCounter';
 import FeatureTile from '../components/FeatureTile';
+import { PushBanner, PushSheet } from '../components/PushSettings';
 import { features, groups } from '../features';
 import { useAuth } from '../lib/auth';
 import { Heart, Icon } from '../icons/Icon';
@@ -18,6 +19,7 @@ function greeting() {
 export default function Dashboard() {
   const { hash } = useLocation();
   const { me, partner, signOut } = useAuth();
+  const [pushOpen, setPushOpen] = useState(false);
   const names = [me?.display_name, partner?.display_name].filter(Boolean).join(' & ') || 'ihr zwei';
   const section = hash.replace('#', '');
 
@@ -53,6 +55,8 @@ export default function Dashboard() {
 
         <DaysCounter />
 
+        <PushBanner onOpen={() => setPushOpen(true)} />
+
         {groups.map((g, gi) => {
           const items = features.filter((f) => f.group === g.id);
           if (items.length === 0) return null;
@@ -78,12 +82,18 @@ export default function Dashboard() {
           <span>
             Mit Liebe gemacht <Heart size={12} />
           </span>
-          <button className="link-btn" onClick={signOut}>
-            Abmelden
-          </button>
+          <span className="foot-links">
+            <button className="link-btn" onClick={() => setPushOpen(true)}>
+              Benachrichtigungen
+            </button>
+            <button className="link-btn" onClick={signOut}>
+              Abmelden
+            </button>
+          </span>
         </footer>
       </main>
       <BottomNav active={active} />
+      <PushSheet open={pushOpen} onClose={() => setPushOpen(false)} />
     </>
   );
 }

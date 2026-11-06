@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Heart } from '../icons/Icon';
 import { useAuth } from '../lib/auth';
+import { notifyPartner } from '../lib/push';
 import { supabase } from '../lib/supabase';
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -56,8 +57,8 @@ export default function DaysCounter() {
   };
 
   const sendHeart = () => {
-    // Später: Push an den Partner. Jetzt erstmal die Herz-Animation.
     window.clearTimeout(timer.current);
+    notifyPartner('heart');
     setBurst((n) => n + 1);
     timer.current = window.setTimeout(() => setBurst(0), 1800);
   };

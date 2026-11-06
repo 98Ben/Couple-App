@@ -20,3 +20,29 @@ Es gibt keinen Mailversand. Im Dashboard unter **Authentication → Users** den 
 
 ## Hinweise
 - Datenbank-Passwort und **Secret / service_role key** gehören nie in den Code oder einen Chat.
+
+## 5. Push-Benachrichtigungen (einmalig)
+
+**a) Datenbank:** `migrations/0004_push.sql` im SQL Editor ausführen.
+
+**b) Schlüsselpaar erzeugen** (am PC, in irgendeinem Terminal mit Node):
+```
+npx web-push generate-vapid-keys
+```
+Es erscheinen ein **Public Key** und ein **Private Key**. Den Private Key niemandem schicken und nicht in den Code legen.
+
+**c) Secrets eintragen:** Supabase → **Edge Functions → Secrets** (bzw. *Manage secrets*), drei Einträge anlegen:
+| Name | Wert |
+|---|---|
+| `VAPID_PUBLIC_KEY` | Public Key aus Schritt b |
+| `VAPID_PRIVATE_KEY` | Private Key aus Schritt b |
+| `VAPID_SUBJECT` | `mailto:` + deine E-Mail, z. B. `mailto:ben@beispiel.de` |
+
+**d) Funktion anlegen:** Supabase → **Edge Functions → Deploy a new function → Via Editor**
+- Name: `notify` (genau so)
+- Den kompletten Inhalt von `functions/notify/index.ts` einfügen, **Deploy** klicken.
+- Danach in den Einstellungen der Funktion **„Verify JWT“ / „Enforce JWT verification“ ausschalten** und speichern. Die Funktion prüft die Anmeldung selbst.
+
+**e) Auf beiden iPhones:** App **vom Home-Bildschirm** öffnen → Startseite → **Aktivieren** → Mitteilungen erlauben → **Test-Benachrichtigung senden**.
+
+Benachrichtigungen kommen bei: „Ich denk an dich“, neuer Liebesnotiz oder Doodle, beantworteter Tagesfrage, neuem Moment, Ort, Countdown, Wunsch oder Bucket-List-Eintrag. Gesendet wird immer an die Geräte des Partners.

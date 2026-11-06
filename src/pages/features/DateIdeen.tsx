@@ -4,6 +4,7 @@ import BottomNav from '../../components/BottomNav';
 import HeartBurst from '../../components/HeartBurst';
 import SubHeader from '../../components/SubHeader';
 import { useAuth } from '../../lib/auth';
+import { notifyPartner } from '../../lib/push';
 import { supabase } from '../../lib/supabase';
 import type { DateIdea, Wish } from '../../lib/types';
 import { useCoupleTable } from '../../lib/useCoupleTable';
@@ -82,6 +83,7 @@ export default function DateIdeen() {
 
   const toBucket = async (idea: DateIdea) => {
     const { error } = await supabase.from('bucket_items').insert({ title: idea.title, category: 'erlebnisse' });
+    if (!error) notifyPartner('bucket', idea.title);
     setToast(error ? 'Hat nicht geklappt. Bist du online?' : 'Steht jetzt auf eurer Bucket List 💕');
   };
 

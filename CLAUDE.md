@@ -33,7 +33,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 
 **Icons**: Nur das eigene Set in `src/icons/iconShapes.ts` (runde Line-Art, 24er Raster, Strich 1,8, mit kleinem Herz-/Akzent-Detail), genutzt über `<Icon name stroke accent />`. Neue Icons im gleichen Stil dort ergänzen. `lucide-react` nur für kleine Hilfs-Icons (Pfeil zurück, Stift).
 
-**Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich denk an dich" lässt Herzen aufsteigen (später zusätzlich Push); `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
+**Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich denk an dich" lässt Herzen aufsteigen und schickt einen Push; `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
 
 **Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Nachrichten und Erinnerungen öffnen eigene Bereichsseiten (`/nachrichten`, `/erinnerungen`, Komponente `AreaPage`), Alltag springt noch per `/#alltag` aufs Dashboard.
 
@@ -43,7 +43,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - Vite 6 + React 18 + TypeScript, React Router (`/` Dashboard, `/f/:id` Feature-Seiten)
 - `vite-plugin-pwa` (Manifest, Service Worker, Offline)
 - Icons: eigenes Set (`src/icons/`), `lucide-react` nur für Hilfs-Icons
-- **Supabase** (Projekt `couple-app`, Region Frankfurt): Auth per E-Mail + Passwort (keine Mails, „Confirm email" aus), Postgres mit Row Level Security. Öffentliche Werte in `.env` (eingecheckt, enthält nur URL + Publishable Key). Geplant: Realtime, Storage, Edge Functions für Web Push, pg_cron für zeitversetzte Nachrichten.
+- **Supabase** (Projekt `couple-app`, Region Frankfurt): Auth per E-Mail + Passwort (keine Mails, „Confirm email" aus), Postgres mit Row Level Security. Öffentliche Werte in `.env` (eingecheckt, enthält nur URL + Publishable Key). Realtime, Storage, Edge Function `notify` für Web Push.
 - Datenbank-Änderungen nur als neue Datei in `supabase/migrations/` (nummeriert, wiederholbar ausführbar), Ben führt sie im SQL Editor aus. Einrichtung: `supabase/EINRICHTUNG.md`.
 - Jede neue Tabelle mit gemeinsamen Daten bekommt eine Spalte `couple_id` und RLS-Regeln über `public.my_couple_id()`.
 - Hosting auf **Cloudflare** (Workers mit statischen Assets, HTTPS, nötig für Push): `wrangler.jsonc` veröffentlicht `dist/` mit SPA-Fallback. Jeder Push auf `main` wird automatisch veröffentlicht.
@@ -69,6 +69,9 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/pages/AreaPage.tsx` – Bereichsübersicht (`/erinnerungen`, `/nachrichten`)
 - `supabase/migrations/0003_nachrichten.sql` – `love_notes` (Text und/oder Doodle, Herz nur vom Partner via `toggle_note_heart`), `daily_questions` (150 Fragen, rotiert täglich nach deutscher Zeit), `question_answers` (Schreiben nur über `answer_today()`, nur heute, nicht änderbar; Partner-Antwort per RLS erst nach eigener Antwort bzw. nach Tagesende lesbar), `today_question()`
 - `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab), `Liebesnotizen` (Post-it-Pinnwand inkl. Doodles, Herz-Reaktion), `FrageDesTages` (verpixelte Partner-Antwort, Archiv; Partner-Antworten werden alle 20 s und bei Rückkehr nachgeladen, da RLS sie für Realtime verbirgt), `Doodle` (Komponente `DoodlePad`: 7 Farben, 3 Stärken, Radierer, Rückgängig, Leeren; PNG in Storage, erscheint auch auf der Pinnwand)
+- **Push**: `supabase/migrations/0004_push.sql` (`push_subscriptions`, `save_push_subscription(sub_endpoint, sub_p256dh, sub_auth, sub_user_agent)`), `supabase/functions/notify/index.ts` (Deno, `npm:web-push`; Typ `key` liefert den öffentlichen VAPID-Schlüssel, `test` an sich selbst, sonst an alle Geräte des Partners; Texte und Name serverseitig; 404/410-Geräte werden gelöscht; Secrets VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT; JWT-Prüfung in der Funktion selbst), `public/push-sw.js` (per `workbox.importScripts`: push + notificationclick), `src/lib/push.ts` (Status, Aktivieren nur per Antippen, `notifyPartner(type, preview)`, Abmelden löst Gerät), `src/components/PushSettings.tsx` (Banner auf der Startseite + Einstellungen mit Test-Push, iPhone-Installationsanleitung).
+- Push-Auslöser: neue Zeilen in `love_notes`/`moments`/`places`/`countdowns`/`wishes`/`bucket_items` zentral in `useCoupleTable.insert`; zusätzlich Herz-Button, `answer_today`, „Machen wir!“ im Date-Würfel. Neue Auslöser dort bzw. per `notifyPartner` ergänzen und den Text in der Edge Function anlegen.
+- `src/lib/storage.ts` – localStorage nur für gerätebezogene Kleinigkeiten
 - `src/styles.css` – gesamtes Styling
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
@@ -96,7 +99,7 @@ Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, S
 2. ✅ Supabase einrichten: Datenbank-Schema + Row Level Security
 3. ✅ Login (E-Mail + Passwort) und Paar-Verknüpfung per Einladungscode
 4. ✅ Hosting auf Cloudflare (Installation auf beiden iPhones noch testen)
-5. Web Push (Service Worker + Edge Function, VAPID-Schlüssel)
+5. ✅ Web Push (Service Worker + Edge Function `notify`, VAPID-Schlüssel; Einrichtung siehe `supabase/EINRICHTUNG.md` Abschnitt 5)
 6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) → offen: Einkaufsliste & To-dos, Kalender, Quiz
 
 ## Befehle
