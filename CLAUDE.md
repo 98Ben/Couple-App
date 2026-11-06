@@ -35,7 +35,9 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 
 **Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich denk an dich" lässt Herzen aufsteigen (später zusätzlich Push); `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
 
-**Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen); springt per `/#bereich` zum Bereich auf dem Dashboard.
+**Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Nachrichten und Erinnerungen öffnen eigene Bereichsseiten (`/nachrichten`, `/erinnerungen`, Komponente `AreaPage`), Alltag springt noch per `/#alltag` aufs Dashboard.
+
+**Handschrift**: Caveat (`@fontsource/caveat`) nur für Notiz-Texte auf Post-its und Hinweise im Zeichenfeld.
 
 ## Tech-Stack
 - Vite 6 + React 18 + TypeScript, React Router (`/` Dashboard, `/f/:id` Feature-Seiten)
@@ -64,23 +66,22 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/lib/useCoupleTable.ts` – Hook für Paar-Tabellen: laden, live synchron halten (Realtime + bei Rückkehr in die App), insert/update/remove
 - `src/lib/photos.ts` – Fotos verkleinern (max. 1600 px JPEG), hochladen, löschen, signierte URLs (`usePhotoUrl`); `src/lib/dates.ts` – Datums-Helfer; `src/lib/types.ts` – Zeilen-Typen
 - Bausteine: `Sheet` (Bottom-Sheet), `SubHeader` (Zurück/Titel/Plus), `Photo`/`PhotoField`, `Empty`, `ConfirmButton` (2× tippen zum Löschen), `HeartBurst` (Herz-Konfetti)
-- `src/pages/Erinnerungen.tsx` – Übersicht des Bereichs (Navigation „Erinnerungen" → `/erinnerungen`)
-- `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab)
+- `src/pages/AreaPage.tsx` – Bereichsübersicht (`/erinnerungen`, `/nachrichten`)
+- `supabase/migrations/0003_nachrichten.sql` – `love_notes` (Text und/oder Doodle, Herz nur vom Partner via `toggle_note_heart`), `daily_questions` (150 Fragen, rotiert täglich nach deutscher Zeit), `question_answers` (Schreiben nur über `answer_today()`, nur heute, nicht änderbar; Partner-Antwort per RLS erst nach eigener Antwort bzw. nach Tagesende lesbar), `today_question()`
+- `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab), `Liebesnotizen` (Post-it-Pinnwand inkl. Doodles, Herz-Reaktion), `FrageDesTages` (verpixelte Partner-Antwort, Archiv; Partner-Antworten werden alle 20 s und bei Rückkehr nachgeladen, da RLS sie für Realtime verbirgt), `Doodle` (Komponente `DoodlePad`: 7 Farben, 3 Stärken, Radierer, Rückgängig, Leeren; PNG in Storage, erscheint auch auf der Pinnwand)
 - `src/styles.css` – gesamtes Styling
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
 
-## Features (14)
+## Features (12)
 | Gruppe | Feature | id |
 |---|---|---|
 | Alltag zu zweit | Einkaufsliste | einkaufsliste |
 | | To-dos / Haushalt | todos |
 | | Gemeinsamer Kalender | kalender |
-| Nachrichten & Notizen | Chat | chat |
-| | Liebesnotizen (auch zeitversetzt) | liebesnotizen |
+| Nachrichten & Notizen | Liebesnotizen | liebesnotizen |
 | | Frage des Tages | frage-des-tages |
 | | Doodle / Zeichnung | doodle |
-| | Sprachnachrichten | sprachnachrichten |
 | Erinnerungen | Weltkarte mit Foto-Markern (erster Kuss, erstes Date …) | weltkarte |
 | | Foto-Timeline („An diesem Tag vor X Jahren") | foto-timeline |
 | | Tage-Zähler & Jahrestage | tage-zaehler |
@@ -88,15 +89,15 @@ Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anl
 | | Date-Ideen & Wunschliste | date-ideen |
 | Extras | Spiele / Quiz | quiz |
 
-Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre.
+Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, Sprachnachrichten, zeitversetzte Liebesnotizen.
 
 ## Fahrplan
-1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit 14 Platzhalterseiten, Design-System umgesetzt
+1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit Platzhalterseiten, Design-System umgesetzt
 2. ✅ Supabase einrichten: Datenbank-Schema + Row Level Security
 3. ✅ Login (E-Mail + Passwort) und Paar-Verknüpfung per Einladungscode
 4. ✅ Hosting auf Cloudflare (Installation auf beiden iPhones noch testen)
 5. Web Push (Service Worker + Edge Function, VAPID-Schlüssel)
-6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) → offen: Einkaufsliste & To-dos, Kalender, Liebesnotizen, Chat, Doodle, Frage des Tages, Sprachnachrichten, Quiz
+6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) → offen: Einkaufsliste & To-dos, Kalender, Quiz
 
 ## Befehle
 - `npm install` – Abhängigkeiten installieren

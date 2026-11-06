@@ -32,3 +32,16 @@ export function yearsAgo(iso: string): number {
 }
 
 export const plural = (n: number, one: string, many: string) => `${n.toLocaleString('de-DE')} ${n === 1 ? one : many}`;
+
+/** „gerade eben“, „vor 5 Min.“, „vor 3 Std.“, „gestern“, sonst Datum */
+export function relativeTime(ts: string): string {
+  const d = new Date(ts);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'gerade eben';
+  if (diff < 3600) return `vor ${Math.floor(diff / 60)} Min.`;
+  const today = new Date();
+  if (d.toDateString() === today.toDateString()) return `vor ${Math.floor(diff / 3600)} Std.`;
+  const y = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'gestern';
+  return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+}

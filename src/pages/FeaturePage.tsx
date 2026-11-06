@@ -24,7 +24,7 @@ export default function FeaturePage() {
         <span className="glow g1" aria-hidden="true" />
 
         <header className="sub-top">
-          <Link to={`/#${f.group}`} className="back press" aria-label="Zurück zum Dashboard">
+          <Link to={f.group === 'nachrichten' || f.group === 'erinnerungen' ? `/${f.group}` : `/#${f.group}`} className="back press" aria-label="Zurück zum Dashboard">
             <ArrowLeft size={20} />
           </Link>
           <h1 className="sub-title">{f.title}</h1>

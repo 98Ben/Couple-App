@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import '@fontsource-variable/nunito';
+import '@fontsource/caveat/600.css';
 import './styles.css';
 import App from './App';
 import { AuthProvider } from './lib/auth';

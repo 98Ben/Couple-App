@@ -62,3 +62,24 @@ export type Wish = {
   created_by: string;
   created_at: string;
 };
+
+export type NoteColor = 'rose' | 'peach' | 'lav' | 'sun';
+
+export type LoveNote = {
+  id: string;
+  text: string | null;
+  color: NoteColor;
+  doodle_path: string | null;
+  heart_at: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type Answer = {
+  id: string;
+  user_id: string;
+  day: string;
+  question_id: number;
+  answer: string;
+  created_at: string;
+};

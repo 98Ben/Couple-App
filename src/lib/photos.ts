@@ -38,6 +38,16 @@ export async function uploadPhoto(coupleId: string, file: File): Promise<string>
   return path;
 }
 
+/** Lädt ein fertiges Bild (z. B. ein Doodle als PNG) hoch. */
+export async function uploadBlob(coupleId: string, blob: Blob, ext: 'png' | 'jpg'): Promise<string> {
+  const path = `${coupleId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { contentType: ext === 'png' ? 'image/png' : 'image/jpeg', upsert: false });
+  if (error) throw new Error('Hochladen hat nicht geklappt. Bist du online?');
+  return path;
+}
+
 export async function removePhoto(path: string | null | undefined) {
   if (!path) return;
   cache.delete(path);

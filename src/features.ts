@@ -63,25 +63,16 @@ export const features: Feature[] = [
 
   // Nachrichten
   {
-    id: 'chat',
-    title: 'Chat',
-    short: 'Nur für uns zwei',
-    icon: 'chat',
-    group: 'nachrichten',
-    status: 'geplant',
-    planned: ['Privater Chat in Echtzeit', 'Fotos und Herzen senden', 'Push bei neuer Nachricht'],
-  },
-  {
     id: 'liebesnotizen',
     title: 'Liebesnotizen',
     short: 'Kleine Botschaften',
     icon: 'letter',
     group: 'nachrichten',
-    status: 'geplant',
+    status: 'fertig',
     planned: [
-      'Kurze Notizen an den anderen schreiben',
-      'Zeitversetzt: Notiz erscheint erst an einem bestimmten Tag',
-      'Sammlung aller Notizen zum Nachlesen',
+      'Kleine Botschaften als Post-its auf eurer Pinnwand',
+      'Mit Herz antworten',
+      'Doodles erscheinen ebenfalls auf der Pinnwand',
     ],
   },
   {
@@ -90,7 +81,7 @@ export const features: Feature[] = [
     short: 'Jeden Tag neu',
     icon: 'question',
     group: 'nachrichten',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Jeden Tag eine neue Frage', 'Antwort des anderen erst sichtbar, wenn beide geantwortet haben', 'Archiv aller Antworten'],
   },
   {
@@ -99,17 +90,8 @@ export const features: Feature[] = [
     short: 'Zeichnen & senden',
     icon: 'doodle',
     group: 'nachrichten',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Mit dem Finger zeichnen', 'Zeichnung an den anderen schicken', 'Galerie aller Doodles'],
-  },
-  {
-    id: 'sprachnachrichten',
-    title: 'Sprachnachrichten',
-    short: 'Kurz was sagen',
-    icon: 'mic',
-    group: 'nachrichten',
-    status: 'geplant',
-    planned: ['Aufnehmen und senden', 'Abspielen in der App', 'Push bei neuer Sprachnachricht'],
   },
 
   // Erinnerungen

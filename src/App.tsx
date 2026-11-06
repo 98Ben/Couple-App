@@ -3,13 +3,16 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { Heart } from './icons/Icon';
 import Dashboard from './pages/Dashboard';
-import Erinnerungen from './pages/Erinnerungen';
+import AreaPage from './pages/AreaPage';
 import FeaturePage from './pages/FeaturePage';
 import Login from './pages/Login';
 import Pairing from './pages/Pairing';
 import BucketList from './pages/features/BucketList';
 import Countdowns from './pages/features/Countdowns';
 import DateIdeen from './pages/features/DateIdeen';
+import Doodle from './pages/features/Doodle';
+import FrageDesTages from './pages/features/FrageDesTages';
+import Liebesnotizen from './pages/features/Liebesnotizen';
 import FotoTimeline from './pages/features/FotoTimeline';
 // Karte (Leaflet) erst laden, wenn sie gebraucht wird
 const Weltkarte = lazy(() => import('./pages/features/Weltkarte'));
@@ -35,7 +38,11 @@ export default function App() {
     content = (
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/erinnerungen" element={<Erinnerungen />} />
+        <Route path="/erinnerungen" element={<AreaPage group="erinnerungen" />} />
+        <Route path="/nachrichten" element={<AreaPage group="nachrichten" />} />
+        <Route path="/f/liebesnotizen" element={<Liebesnotizen />} />
+        <Route path="/f/frage-des-tages" element={<FrageDesTages />} />
+        <Route path="/f/doodle" element={<Doodle />} />
         <Route path="/f/weltkarte" element={<Suspense fallback={<main className="page splash"><Heart size={40} color="#C98BEA" /></main>}><Weltkarte /></Suspense>} />
         <Route path="/f/foto-timeline" element={<FotoTimeline />} />
         <Route path="/f/tage-zaehler" element={<Countdowns />} />
