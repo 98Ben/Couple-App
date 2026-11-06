@@ -1,0 +1,7 @@
+node_modules
+dist
+dev-dist
+# .env enthält nur öffentliche Werte und wird mit eingecheckt
+.env.local
+.idea
+*.log
