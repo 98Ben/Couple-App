@@ -18,7 +18,11 @@ import { HEART_PATH } from '../../icons/iconShapes';
 import { tones } from '../../theme';
 
 const tone = tones.lav;
-const TILES = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const CARTO_KEY = import.meta.env.VITE_CARTO_KEY as string | undefined;
+// CARTO verlangt einen Schlüssel; ohne Schlüssel weichen wir auf die OpenStreetMap-Kacheln aus
+const TILES = CARTO_KEY
+  ? `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`
+  : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const GERMANY: [number, number] = [51.16, 10.45];
 
@@ -96,7 +100,7 @@ export default function Weltkarte() {
 
         <section className="map-card appear" style={{ boxShadow: `0 14px 34px ${tone.shadow}` }}>
           <MapContainer ref={mapRef} center={GERMANY} zoom={5} zoomControl={false} className="map" attributionControl>
-            <TileLayer url={TILES} attribution={ATTRIBUTION} subdomains="abcd" maxZoom={19} />
+            <TileLayer url={TILES} attribution={ATTRIBUTION} maxZoom={19} />
             <FitOnce places={rows} />
             {rows.map((p) => (
               <PlaceMarker key={p.id} place={p} active={viewing?.id === p.id} onOpen={() => open(p)} />
@@ -358,7 +362,7 @@ function LocationPicker({ value, onChange, fallbackCenter }: { value: Pos | null
       {msg && <p className="form-hint">{msg}</p>}
       <div className="mini-map-wrap">
         <MapContainer center={center} zoom={value ? 13 : fallbackCenter ? 6 : 5} zoomControl={false} className="mini-map">
-          <TileLayer url={TILES} attribution={ATTRIBUTION} subdomains="abcd" maxZoom={19} />
+          <TileLayer url={TILES} attribution={ATTRIBUTION} maxZoom={19} />
           <ClickToPick onPick={(lat, lng) => pick(lat, lng)} />
           <Recenter pos={value} />
           {value && (
