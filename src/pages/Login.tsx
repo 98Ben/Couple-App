@@ -4,38 +4,40 @@ import { supabase } from '../lib/supabase';
 import { Heart } from '../icons/Icon';
 
 /**
- * Anmeldung ohne Passwort: E-Mail eingeben → Mail mit Code (und Link) → Code hier eintippen.
- * Der Code ist wichtig für die installierte iPhone-App: Ein Link aus der Mail öffnet Safari,
- * nicht die App vom Home-Bildschirm, und die beiden teilen keine Anmeldung.
+ * Anmeldung mit E-Mail und Passwort. Es werden keine Mails verschickt
+ * (in Supabase ist „Confirm email" ausgeschaltet). Danach bleibt man dauerhaft angemeldet.
  */
 export default function Login() {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendMail = async (e?: FormEvent) => {
-    e?.preventDefault();
+  const register = mode === 'register';
+  const mismatch = register && password2.length > 0 && password !== password2;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (register && password !== password2) return;
     setBusy(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
-    });
+    const creds = { email: email.trim(), password };
+    const { data, error } = register
+      ? await supabase.auth.signUp(creds)
+      : await supabase.auth.signInWithPassword(creds);
     setBusy(false);
     if (error) setError(deutscherFehler(error.message));
-    else setStep('code');
+    else if (register && !data.session)
+      setError('Konto angelegt, aber Supabase verlangt noch eine Bestätigungsmail. Bitte „Confirm email" in Supabase ausschalten.');
+    // Erfolg: AuthProvider bekommt die neue Session automatisch
   };
 
-  const verify = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
+  const switchMode = () => {
+    setMode(register ? 'login' : 'register');
     setError(null);
-    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' });
-    setBusy(false);
-    if (error) setError(deutscherFehler(error.message));
-    // Erfolg: AuthProvider bekommt die neue Session automatisch
+    setPassword2('');
   };
 
   return (
@@ -52,62 +54,61 @@ export default function Login() {
       </header>
 
       <section className="card appear" style={{ animationDelay: '0.08s' }}>
-        {step === 'email' ? (
-          <form className="form" onSubmit={sendMail}>
-            <h2 className="card-title">Anmelden</h2>
-            <p className="form-hint">Kein Passwort nötig. Wir schicken dir einen Code per E-Mail.</p>
+        <form className="form" onSubmit={submit}>
+          <h2 className="card-title">{register ? 'Konto erstellen' : 'Anmelden'}</h2>
+          <p className="form-hint">
+            {register ? 'Einmal anlegen, danach bleibst du auf diesem Gerät angemeldet.' : 'Schön, dass du da bist.'}
+          </p>
+          <label className="field">
+            <span>E-Mail</span>
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="du@beispiel.de"
+            />
+          </label>
+          <label className="field">
+            <span>Passwort</span>
+            <input
+              type="password"
+              autoComplete={register ? 'new-password' : 'current-password'}
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={register ? 'Mindestens 6 Zeichen' : 'Dein Passwort'}
+            />
+          </label>
+          {register && (
             <label className="field">
-              <span>E-Mail</span>
+              <span>Passwort wiederholen</span>
               <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
+                type="password"
+                autoComplete="new-password"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="du@beispiel.de"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
               />
             </label>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="primary-btn press" disabled={busy || !email.trim()}>
-              {busy ? 'Wird gesendet …' : 'Code schicken'}
-            </button>
-          </form>
-        ) : (
-          <form className="form" onSubmit={verify}>
-            <h2 className="card-title">Code eingeben</h2>
-            <p className="form-hint">
-              Wir haben dir eine Mail an <strong>{email}</strong> geschickt. Tipp den Code daraus hier ein.
-            </p>
-            <label className="field">
-              <span>Code aus der Mail</span>
-              <input
-                className="code-input"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]*"
-                maxLength={8}
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="123456"
-              />
-            </label>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="primary-btn press" disabled={busy || code.length < 6}>
-              {busy ? 'Wird geprüft …' : 'Anmelden'}
-            </button>
-            <div className="form-links">
-              <button type="button" className="link-btn" onClick={() => sendMail()} disabled={busy}>
-                Neuen Code schicken
-              </button>
-              <button type="button" className="link-btn" onClick={() => { setStep('email'); setCode(''); setError(null); }}>
-                Andere E-Mail
-              </button>
-            </div>
-          </form>
-        )}
+          )}
+          {mismatch && <p className="form-error" role="alert">Die Passwörter stimmen nicht überein.</p>}
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="primary-btn press" disabled={busy || !email.trim() || password.length < 6 || mismatch}>
+            {busy ? 'Einen Moment …' : register ? 'Konto erstellen' : 'Anmelden'}
+          </button>
+        </form>
       </section>
+
+      <p className="switch-line">
+        {register ? 'Du hast schon ein Konto?' : 'Noch kein Konto?'}{' '}
+        <button className="link-btn" onClick={switchMode}>
+          {register ? 'Anmelden' : 'Konto erstellen'}
+        </button>
+      </p>
     </main>
   );
 }

@@ -218,7 +218,7 @@ button { font: inherit; color: inherit; }
   color: var(--coral-text); font-size: 14px; font-weight: 800;
 }
 .link-btn:disabled { opacity: 0.5; }
-.form-links { display: flex; justify-content: space-between; }
+.switch-line { margin: 0; text-align: center; color: var(--muted); font-weight: 700; font-size: 14px; }
 .form-error { margin: 0; padding: 10px 14px; border-radius: 14px; background: #FFF1F2; color: var(--coral-text); font-size: 14px; font-weight: 700; }
 .invite-code {
   border: 0; cursor: pointer; padding: 18px 12px; border-radius: 22px;

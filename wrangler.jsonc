@@ -1,0 +1,10 @@
+// Cloudflare: veröffentlicht den Ordner dist/ als statische Seite.
+// Unbekannte Pfade (z. B. /f/weltkarte) liefern index.html, damit das App-Routing funktioniert.
+{
+  "name": "couple-app",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

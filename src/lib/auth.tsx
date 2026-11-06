@@ -85,7 +85,11 @@ export function deutscherFehler(message: string | undefined): string {
   if (!message) return 'Etwas ist schiefgelaufen. Bitte versuch es nochmal.';
   const m = message.toLowerCase();
   if (m.includes('rate limit') || m.includes('security purposes')) return 'Zu viele Versuche. Bitte warte kurz und versuch es dann nochmal.';
-  if (m.includes('expired') || m.includes('invalid')) return 'Der Code ist falsch oder abgelaufen. Fordere am besten einen neuen an.';
+  if (m.includes('invalid login credentials')) return 'E-Mail oder Passwort stimmen nicht.';
+  if (m.includes('already registered') || m.includes('already exists')) return 'Mit dieser E-Mail gibt es schon ein Konto. Melde dich einfach an.';
+  if (m.includes('password')) return 'Das Passwort ist zu kurz oder zu einfach (mindestens 6 Zeichen).';
+  if (m.includes('signups not allowed') || m.includes('signup is disabled')) return 'Neue Konten sind in Supabase gerade ausgeschaltet.';
+  if (m.includes('email not confirmed')) return 'Die E-Mail ist noch nicht bestätigt. Bitte „Confirm email" in Supabase ausschalten.';
   if (m.includes('email')) return 'Bitte gib eine gültige E-Mail-Adresse ein.';
   if (m.includes('failed to fetch') || m.includes('network')) return 'Keine Verbindung. Bist du online?';
   return message; // eigene Fehlertexte aus der Datenbank sind schon deutsch

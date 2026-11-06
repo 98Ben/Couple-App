@@ -38,13 +38,13 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 **Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen); springt per `/#bereich` zum Bereich auf dem Dashboard.
 
 ## Tech-Stack
-- Vite + React 18 + TypeScript, React Router (`/` Dashboard, `/f/:id` Feature-Seiten)
+- Vite 6 + React 18 + TypeScript, React Router (`/` Dashboard, `/f/:id` Feature-Seiten)
 - `vite-plugin-pwa` (Manifest, Service Worker, Offline)
 - Icons: eigenes Set (`src/icons/`), `lucide-react` nur für Hilfs-Icons
-- **Supabase** (Projekt `couple-app`, Region Frankfurt): Auth per E-Mail-Code/Magic Link, Postgres mit Row Level Security. Öffentliche Werte in `.env` (eingecheckt, enthält nur URL + Publishable Key). Geplant: Realtime, Storage, Edge Functions für Web Push, pg_cron für zeitversetzte Nachrichten.
+- **Supabase** (Projekt `couple-app`, Region Frankfurt): Auth per E-Mail + Passwort (keine Mails, „Confirm email" aus), Postgres mit Row Level Security. Öffentliche Werte in `.env` (eingecheckt, enthält nur URL + Publishable Key). Geplant: Realtime, Storage, Edge Functions für Web Push, pg_cron für zeitversetzte Nachrichten.
 - Datenbank-Änderungen nur als neue Datei in `supabase/migrations/` (nummeriert, wiederholbar ausführbar), Ben führt sie im SQL Editor aus. Einrichtung: `supabase/EINRICHTUNG.md`.
 - Jede neue Tabelle mit gemeinsamen Daten bekommt eine Spalte `couple_id` und RLS-Regeln über `public.my_couple_id()`.
-- Geplant: Hosting auf **Cloudflare Pages** (HTTPS, nötig für Push). `public/_redirects` sorgt für SPA-Routing.
+- Hosting auf **Cloudflare** (Workers mit statischen Assets, HTTPS, nötig für Push): `wrangler.jsonc` veröffentlicht `dist/` mit SPA-Fallback. Jeder Push auf `main` wird automatisch veröffentlicht.
 - Karte (Weltkarte): Leaflet bzw. MapLibre mit OpenStreetMap-Daten
 
 ## Struktur
@@ -56,7 +56,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/components/DaysCounter.tsx` – Tage-Zähler mit „Ich denk an dich"-Button (Startdatum gemeinsam in `couples.start_date`)
 - `src/components/FeatureTile.tsx` – Kachel; `src/components/BottomNav.tsx` – Navigation
 - `src/lib/supabase.ts` – Supabase-Client; `src/lib/auth.tsx` – `AuthProvider`/`useAuth()` (Session, eigenes Profil, Partner, Paar) und deutsche Fehlermeldungen
-- `src/pages/Login.tsx` – Anmeldung: E-Mail → 6-stelliger Code (Code statt Link, weil Links aus Mails auf dem iPhone Safari statt der installierten PWA öffnen)
+- `src/pages/Login.tsx` – Anmelden / Konto erstellen mit E-Mail + Passwort. Bewusst kein Magic Link: Free-Projekte können Mail-Vorlagen nicht ändern, Mails gehen ohne eigenes SMTP nur an Org-Mitglieder, und Links aus Mails öffnen auf dem iPhone Safari statt der PWA.
 - `src/pages/Pairing.tsx` – Name, Paar anlegen (Einladungscode) oder mit Code beitreten; wartet per Realtime auf den Partner
 - `App.tsx` – Weiche: Laden → Login → Paar-Verknüpfung → App (erst wenn beide verbunden sind)
 - `supabase/migrations/0001_paare_und_profile.sql` – Tabellen `profiles`, `couples`, RLS, Funktionen `create_couple()`, `join_couple(code)`, `my_couple_id()`
@@ -87,7 +87,7 @@ Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre.
 ## Fahrplan
 1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit 14 Platzhalterseiten, Design-System umgesetzt
 2. ✅ Supabase einrichten: Datenbank-Schema + Row Level Security
-3. ✅ Login (E-Mail-Code) und Paar-Verknüpfung per Einladungscode
+3. ✅ Login (E-Mail + Passwort) und Paar-Verknüpfung per Einladungscode
 4. Hosting auf Cloudflare Pages, Installation auf beiden iPhones testen
 5. Web Push (Service Worker + Edge Function, VAPID-Schlüssel)
 6. Features einzeln: Einkaufsliste & To-dos → Liebesnotizen → Tage-Zähler → Kalender → Chat → Foto-Timeline → Weltkarte → Doodle → Frage des Tages → Bucket List → Date-Ideen → Sprachnachrichten → Quiz
