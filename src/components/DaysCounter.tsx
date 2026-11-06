@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Heart } from '../icons/Icon';
-import { load, save } from '../lib/storage';
-
-const KEY = 'couple.startDate';
+import { useAuth } from '../lib/auth';
+import { supabase } from '../lib/supabase';
 const DAY = 24 * 60 * 60 * 1000;
 
 function startOfDay(d: Date) {
@@ -34,18 +33,25 @@ const BURST = [
 ];
 
 export default function DaysCounter() {
-  const [start, setStart] = useState<string | null>(() => load(KEY));
+  const { couple, refresh } = useAuth();
+  const start = couple?.start_date ?? null; // gemeinsam in Supabase gespeichert
   const [editing, setEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [burst, setBurst] = useState(0); // Zähler: jeder Klick startet die Animation neu
   const timer = useRef<number>();
   const s = useMemo(() => (start ? stats(start) : null), [start]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  const onPick = (value: string) => {
-    if (!value) return;
-    save(KEY, value);
-    setStart(value);
+  const onPick = async (value: string) => {
+    if (!value || !couple) return;
+    setError(null);
+    const { error } = await supabase.from('couples').update({ start_date: value }).eq('id', couple.id);
+    if (error) {
+      setError('Konnte nicht gespeichert werden. Bist du online?');
+      return;
+    }
+    await refresh();
     setEditing(false);
   };
 
@@ -88,7 +94,7 @@ export default function DaysCounter() {
               onChange={(e) => onPick(e.target.value)}
             />
           </label>
-          <span className="hero-hint">Wird vorerst nur auf diesem Gerät gespeichert.</span>
+          <span className="hero-hint">{error ?? 'Gilt für euch beide.'}</span>
         </>
       )}
 

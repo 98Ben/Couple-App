@@ -41,7 +41,9 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - Vite + React 18 + TypeScript, React Router (`/` Dashboard, `/f/:id` Feature-Seiten)
 - `vite-plugin-pwa` (Manifest, Service Worker, Offline)
 - Icons: eigenes Set (`src/icons/`), `lucide-react` nur für Hilfs-Icons
-- Geplant: **Supabase** (Auth, Postgres mit Row Level Security, Realtime, Storage, Edge Functions für Web Push, pg_cron für zeitversetzte Nachrichten)
+- **Supabase** (Projekt `couple-app`, Region Frankfurt): Auth per E-Mail-Code/Magic Link, Postgres mit Row Level Security. Öffentliche Werte in `.env` (eingecheckt, enthält nur URL + Publishable Key). Geplant: Realtime, Storage, Edge Functions für Web Push, pg_cron für zeitversetzte Nachrichten.
+- Datenbank-Änderungen nur als neue Datei in `supabase/migrations/` (nummeriert, wiederholbar ausführbar), Ben führt sie im SQL Editor aus. Einrichtung: `supabase/EINRICHTUNG.md`.
+- Jede neue Tabelle mit gemeinsamen Daten bekommt eine Spalte `couple_id` und RLS-Regeln über `public.my_couple_id()`.
 - Geplant: Hosting auf **Cloudflare Pages** (HTTPS, nötig für Push). `public/_redirects` sorgt für SPA-Routing.
 - Karte (Weltkarte): Leaflet bzw. MapLibre mit OpenStreetMap-Daten
 
@@ -51,9 +53,13 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/icons/` – eigenes Icon-Set (`iconShapes.ts`) und `<Icon>`/`<Heart>`-Komponenten
 - `src/pages/Dashboard.tsx` – Startseite mit Tage-Zähler und Kacheln nach Bereichen
 - `src/pages/FeaturePage.tsx` – generische Platzhalterseite für Features mit `status: 'geplant'`
-- `src/components/DaysCounter.tsx` – Tage-Zähler mit „Ich denk an dich"-Button (Startdatum vorerst in localStorage)
+- `src/components/DaysCounter.tsx` – Tage-Zähler mit „Ich denk an dich"-Button (Startdatum gemeinsam in `couples.start_date`)
 - `src/components/FeatureTile.tsx` – Kachel; `src/components/BottomNav.tsx` – Navigation
-- `src/lib/storage.ts` – sicherer localStorage-Wrapper (wird durch Supabase ersetzt)
+- `src/lib/supabase.ts` – Supabase-Client; `src/lib/auth.tsx` – `AuthProvider`/`useAuth()` (Session, eigenes Profil, Partner, Paar) und deutsche Fehlermeldungen
+- `src/pages/Login.tsx` – Anmeldung: E-Mail → 6-stelliger Code (Code statt Link, weil Links aus Mails auf dem iPhone Safari statt der installierten PWA öffnen)
+- `src/pages/Pairing.tsx` – Name, Paar anlegen (Einladungscode) oder mit Code beitreten; wartet per Realtime auf den Partner
+- `App.tsx` – Weiche: Laden → Login → Paar-Verknüpfung → App (erst wenn beide verbunden sind)
+- `supabase/migrations/0001_paare_und_profile.sql` – Tabellen `profiles`, `couples`, RLS, Funktionen `create_couple()`, `join_couple(code)`, `my_couple_id()`
 - `src/styles.css` – gesamtes Styling
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
@@ -80,8 +86,8 @@ Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre.
 
 ## Fahrplan
 1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit 14 Platzhalterseiten, Design-System umgesetzt
-2. Supabase einrichten: Datenbank-Schema + Row Level Security
-3. Login und Paar-Verknüpfung per Einladungscode
+2. ✅ Supabase einrichten: Datenbank-Schema + Row Level Security
+3. ✅ Login (E-Mail-Code) und Paar-Verknüpfung per Einladungscode
 4. Hosting auf Cloudflare Pages, Installation auf beiden iPhones testen
 5. Web Push (Service Worker + Edge Function, VAPID-Schlüssel)
 6. Features einzeln: Einkaufsliste & To-dos → Liebesnotizen → Tage-Zähler → Kalender → Chat → Foto-Timeline → Weltkarte → Doodle → Frage des Tages → Bucket List → Date-Ideen → Sprachnachrichten → Quiz

@@ -4,6 +4,7 @@ import BottomNav, { type NavKey } from '../components/BottomNav';
 import DaysCounter from '../components/DaysCounter';
 import FeatureTile from '../components/FeatureTile';
 import { features, groups } from '../features';
+import { useAuth } from '../lib/auth';
 import { Heart, Icon } from '../icons/Icon';
 import { colors, tones } from '../theme';
 
@@ -16,6 +17,8 @@ function greeting() {
 
 export default function Dashboard() {
   const { hash } = useLocation();
+  const { me, partner, signOut } = useAuth();
+  const names = [me?.display_name, partner?.display_name].filter(Boolean).join(' & ') || 'ihr zwei';
   const section = hash.replace('#', '');
 
   // Navigation unten springt zum passenden Bereich
@@ -40,7 +43,7 @@ export default function Dashboard() {
 
         <header className="top appear">
           <div>
-            <p className="top-small">{greeting()}, ihr zwei ✨</p>
+            <p className="top-small">{greeting()}, {names} ✨</p>
             <h1 className="top-title">Couple App</h1>
           </div>
           <span className="beat">
@@ -72,7 +75,12 @@ export default function Dashboard() {
         })}
 
         <footer className="foot">
-          Mit Liebe gemacht <Heart size={12} />
+          <span>
+            Mit Liebe gemacht <Heart size={12} />
+          </span>
+          <button className="link-btn" onClick={signOut}>
+            Abmelden
+          </button>
         </footer>
       </main>
       <BottomNav active={active} />
