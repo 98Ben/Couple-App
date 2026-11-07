@@ -117,3 +117,41 @@ export type Capsule = {
 };
 
 export type CapsuleContent = { capsule_id: string; message: string; photo_paths: string[] };
+
+export type ShoppingItem = {
+  id: string;
+  name: string;
+  category: string;
+  checked_at: string | null;
+  checked_by: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type ShoppingMemory = { key: string; name: string; category: string; uses: number; pinned: boolean; last_used: string };
+
+export type Task = {
+  id: string;
+  title: string;
+  assignee: string | null;
+  due_on: string | null;
+  important: boolean;
+  done_at: string | null;
+  done_by: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type ChoreEvery = 'taeglich' | 'woechentlich' | 'zweiwoechentlich' | 'monatlich';
+
+export type Chore = {
+  id: string;
+  title: string;
+  assignee: string | null;
+  every: ChoreEvery;
+  next_due: string;
+  last_done_at: string | null;
+  last_done_by: string | null;
+  created_by: string;
+  created_at: string;
+};

@@ -11,6 +11,8 @@ import BucketList from './pages/features/BucketList';
 import Countdowns from './pages/features/Countdowns';
 import DateIdeen from './pages/features/DateIdeen';
 import Doodle from './pages/features/Doodle';
+import Einkaufsliste from './pages/features/Einkaufsliste';
+import ToDos from './pages/features/ToDos';
 import FrageDesTages from './pages/features/FrageDesTages';
 import Liebesnotizen from './pages/features/Liebesnotizen';
 import Quiz from './pages/features/Quiz';
@@ -42,6 +44,9 @@ export default function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/erinnerungen" element={<AreaPage group="erinnerungen" />} />
         <Route path="/nachrichten" element={<AreaPage group="nachrichten" />} />
+        <Route path="/alltag" element={<AreaPage group="alltag" />} />
+        <Route path="/f/einkaufsliste" element={<Einkaufsliste />} />
+        <Route path="/f/todos" element={<ToDos />} />
         <Route path="/extras" element={<AreaPage group="extras" />} />
         <Route path="/f/quiz" element={<Quiz />} />
         <Route path="/f/zeitkapseln" element={<Zeitkapseln />} />

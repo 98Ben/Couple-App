@@ -35,7 +35,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 
 **Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich denk an dich" lässt Herzen aufsteigen und schickt einen Push; `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
 
-**Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Nachrichten, Erinnerungen und Extras haben eigene Bereichsseiten (`/nachrichten`, `/erinnerungen`, `/extras`, Komponente `AreaPage`; Extras ohne eigenen Nav-Punkt), Alltag springt noch per `/#alltag` aufs Dashboard.
+**Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Alle Bereiche haben eigene Bereichsseiten (`/alltag`, `/nachrichten`, `/erinnerungen`, `/extras`, Komponente `AreaPage`; Extras ohne eigenen Nav-Punkt).
 
 **Bottom-Sheets** werden per Portal an `<body>` gehängt (animierte Eltern mit `transform` würden `position: fixed` sonst einsperren). Klassennamen wie `.burst` nicht für andere Zwecke wiederverwenden (globale Animationen).
 
@@ -68,7 +68,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/lib/useCoupleTable.ts` – Hook für Paar-Tabellen: laden, live synchron halten (Realtime + bei Rückkehr in die App), insert/update/remove
 - `src/lib/photos.ts` – Fotos verkleinern (max. 1600 px JPEG), hochladen, löschen, signierte URLs (`usePhotoUrl`); `src/lib/dates.ts` – Datums-Helfer; `src/lib/types.ts` – Zeilen-Typen
 - Bausteine: `Sheet` (Bottom-Sheet), `SubHeader` (Zurück/Titel/Plus), `Photo`/`PhotoField`, `Empty`, `ConfirmButton` (2× tippen zum Löschen), `HeartBurst` (Herz-Konfetti)
-- `src/pages/AreaPage.tsx` – Bereichsübersicht (`/erinnerungen`, `/nachrichten`)
+- `src/pages/AreaPage.tsx` – Bereichsübersicht (`/alltag`, `/nachrichten`, `/erinnerungen`, `/extras`)
 - `supabase/migrations/0003_nachrichten.sql` – `love_notes` (Text und/oder Doodle, Herz nur vom Partner via `toggle_note_heart`), `daily_questions` (150 Fragen, rotiert täglich nach deutscher Zeit), `question_answers` (Schreiben nur über `answer_today()`, nur heute, nicht änderbar; Partner-Antwort per RLS erst nach eigener Antwort bzw. nach Tagesende lesbar), `today_question()`
 - `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab), `Liebesnotizen` (Post-it-Pinnwand inkl. Doodles, Herz-Reaktion), `FrageDesTages` (verpixelte Partner-Antwort, Archiv; Partner-Antworten werden alle 20 s und bei Rückkehr nachgeladen, da RLS sie für Realtime verbirgt), `Doodle` (Komponente `DoodlePad`: 7 Farben, 3 Stärken, Radierer, Rückgängig, Leeren; PNG in Storage, erscheint auch auf der Pinnwand)
 - **Push**: `supabase/migrations/0004_push.sql` (`push_subscriptions`, `save_push_subscription(sub_endpoint, sub_p256dh, sub_auth, sub_user_agent)`), `supabase/functions/notify/index.ts` (Deno, `npm:web-push`; Typ `key` liefert den öffentlichen VAPID-Schlüssel, `test` an sich selbst, sonst an alle Geräte des Partners; Texte und Name serverseitig; 404/410-Geräte werden gelöscht; Secrets VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT; JWT-Prüfung in der Funktion selbst), `public/push-sw.js` (per `workbox.importScripts`: push + notificationclick), `src/lib/push.ts` (Status, Aktivieren nur per Antippen, `notifyPartner(type, preview)`, Abmelden löst Gerät), `src/components/PushSettings.tsx` (Banner auf der Startseite + Einstellungen mit Test-Push, iPhone-Installationsanleitung).
@@ -79,17 +79,19 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
   - Zeitkapseln: `capsules` (Hülle sichtbar) + `capsule_contents` (Nachricht, bis 5 Fotos; per RLS für **niemanden** lesbar vor `open_on`), `create_capsule(...)`, `delete_capsule(k)` (nur eigene, gibt Fotopfade zurück). Seite `Zeitkapseln.tsx` (Geschenkboxen in CSS, Öffnen-Animation; „schon geöffnet“ lokal pro Gerät gemerkt).
   - Täglicher pg_cron-Job `couple-capsules` (07:00 UTC) ruft `notify` mit `{"type":"cron"}` und Header `x-cron-secret` (Geheimnis in `private.cron_secret`, Prüfung über `cron_secret_ok`, nur service_role) → Push an beide bei fälligen Kapseln, setzt `notified_at`.
   - Neue Push-Typen in `notify`: `hug`, `quiz`, `capsule`, `cron`.
+- **Alltag** – `supabase/migrations/0006_alltag.sql` (keine Pushes, so gewünscht):
+  - Einkaufsliste: `shopping_items` (`checked_at` = „Bereits im Wagen“), `shopping_memory` (pro Paar: gelernte Kategorie, Häufigkeit, `pinned` = Favorit), `shopping_remember(name, cat)`, `shopping_set_category(name, cat)`. `src/lib/shopping.ts`: 10 Kategorien in Supermarkt-Reihenfolge, deutsche Wortliste (längstes Stichwort gewinnt, Wörter ≤ 3 Zeichen nur als ganzes Wort), Gedächtnis hat Vorrang. Seite `Einkaufsliste.tsx` (Favoriten = angepinnt + oft gekauft, Doppelte werden nicht neu angelegt).
+  - To-dos: `tasks` (einmalig; `assignee` null = beide, `due_on`, `important`), `chores` (wiederkehrend: täglich/wöchentlich/2-wöchentlich/monatlich, `complete_chore(id)` setzt `next_due` = später von (fällig, heute) + Intervall). Seite `ToDos.tsx` (Filter Alle/Meine/Partner, Abschnitte Wiederkehrend · Überfällig · Heute · Demnächst · Irgendwann · Erledigt, „Alles geschafft“-Banner). Komponente `Avatar` (Anfangsbuchstabe, Ich = koralle, Partner = lavendel, beide = Paar).
 - `src/lib/storage.ts` – localStorage nur für gerätebezogene Kleinigkeiten
 - `src/styles.css` – gesamtes Styling
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
 
-## Features (13)
+## Features (12)
 | Gruppe | Feature | id |
 |---|---|---|
 | Alltag zu zweit | Einkaufsliste | einkaufsliste |
-| | To-dos / Haushalt | todos |
-| | Gemeinsamer Kalender | kalender |
+| | To-dos / Haushalt (einmalig + wiederkehrend) | todos |
 | Nachrichten & Notizen | Liebesnotizen | liebesnotizen |
 | | Frage des Tages | frage-des-tages |
 | | Doodle / Zeichnung | doodle |
@@ -102,7 +104,7 @@ Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anl
 | | Zeitkapseln | zeitkapseln |
 | Startseite | Tage-Zähler, Stimmungs-Ring | – |
 
-Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, Sprachnachrichten, zeitversetzte Liebesnotizen.
+Bewusst weggelassen: Kalender (ihr nutzt Google Calendar), Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, Sprachnachrichten, zeitversetzte Liebesnotizen.
 
 ## Fahrplan
 1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit Platzhalterseiten, Design-System umgesetzt
@@ -110,7 +112,7 @@ Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, S
 3. ✅ Login (E-Mail + Passwort) und Paar-Verknüpfung per Einladungscode
 4. ✅ Hosting auf Cloudflare (Installation auf beiden iPhones noch testen)
 5. ✅ Web Push (Service Worker + Edge Function `notify`, VAPID-Schlüssel; Einrichtung siehe `supabase/EINRICHTUNG.md` Abschnitt 5)
-6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) · ✅ Extras (Quiz, Zeitkapseln, Stimmungs-Ring) → offen: Alltag (Einkaufsliste, To-dos, Kalender)
+6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) · ✅ Extras (Quiz, Zeitkapseln, Stimmungs-Ring) · ✅ Alltag (Einkaufsliste, To-dos). Alle geplanten Features sind gebaut.
 
 ## Befehle
 - `npm install` – Abhängigkeiten installieren

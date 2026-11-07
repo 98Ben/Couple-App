@@ -54,3 +54,7 @@ Benachrichtigungen kommen bei: „Ich denk an dich“, neuer Liebesnotiz oder Do
 - Fehlt er: unter **Database → Extensions** `pg_cron` und `pg_net` aktivieren und die Datei noch einmal ausführen.
 
 **b) Edge Function aktualisieren:** **Edge Functions → notify → Code** öffnen, den Inhalt komplett durch die neue `functions/notify/index.ts` ersetzen und **Deploy** klicken. „Verify JWT" bleibt aus.
+
+## 7. Alltag: Einkaufsliste und To-dos
+
+`migrations/0006_alltag.sql` im SQL Editor ausführen. Die Edge Function muss dafür nicht geändert werden (im Alltag gibt es bewusst keine Pushes).

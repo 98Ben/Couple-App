@@ -35,7 +35,7 @@ export const features: Feature[] = [
     short: 'Gemeinsam einkaufen',
     icon: 'bag',
     group: 'alltag',
-    status: 'geplant',
+    status: 'fertig',
     planned: [
       'Artikel hinzufügen, abhaken und löschen',
       'Änderungen erscheinen sofort beim anderen',
@@ -48,17 +48,8 @@ export const features: Feature[] = [
     short: 'Haushalt & Aufgaben',
     icon: 'checklist',
     group: 'alltag',
-    status: 'geplant',
+    status: 'fertig',
     planned: ['Aufgaben für dich, für sie oder für beide', 'Fälligkeitsdatum und wiederkehrende Aufgaben', 'Erledigt-Ansicht'],
-  },
-  {
-    id: 'kalender',
-    title: 'Kalender',
-    short: 'Unsere Termine',
-    icon: 'calendar',
-    group: 'alltag',
-    status: 'geplant',
-    planned: ['Gemeinsame Termine und Dates', 'Monats- und Listenansicht', 'Erinnerung per Push'],
   },
 
   // Nachrichten
