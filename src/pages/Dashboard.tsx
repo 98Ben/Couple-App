@@ -20,6 +20,7 @@ export default function Dashboard() {
   const { hash } = useLocation();
   const { me, partner, signOut } = useAuth();
   const [pushOpen, setPushOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
   const names = [me?.display_name, partner?.display_name].filter(Boolean).join(' & ') || 'ihr zwei';
   const section = hash.replace('#', '');
 
@@ -53,7 +54,7 @@ export default function Dashboard() {
           </span>
         </header>
 
-        <DaysCounter />
+        <DaysCounter editOpen={dateOpen} onEditOpenChange={setDateOpen} />
 
         <PushBanner onOpen={() => setPushOpen(true)} />
 
@@ -85,6 +86,9 @@ export default function Dashboard() {
           <span className="foot-links">
             <button className="link-btn" onClick={() => setPushOpen(true)}>
               Benachrichtigungen
+            </button>
+            <button className="link-btn" onClick={() => setDateOpen(true)}>
+              Startdatum
             </button>
             <button className="link-btn" onClick={signOut}>
               Abmelden

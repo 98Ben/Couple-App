@@ -55,7 +55,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/icons/` – eigenes Icon-Set (`iconShapes.ts`) und `<Icon>`/`<Heart>`-Komponenten
 - `src/pages/Dashboard.tsx` – Startseite mit Tage-Zähler und Kacheln nach Bereichen
 - `src/pages/FeaturePage.tsx` – generische Platzhalterseite für Features mit `status: 'geplant'`
-- `src/components/DaysCounter.tsx` – Tage-Zähler mit „Ich denk an dich"-Button (Startdatum gemeinsam in `couples.start_date`)
+- `src/components/DaysCounter.tsx` – schlichter Tage-Zähler mit nur einem Knopf („Ich denk an dich“). Startdatum (`couples.start_date`) ändert man versteckt: lange auf die Zahl drücken oder Link „Startdatum“ unten auf der Startseite (Bottom-Sheet)
 - `src/components/FeatureTile.tsx` – Kachel; `src/components/BottomNav.tsx` – Navigation
 - `src/lib/supabase.ts` – Supabase-Client; `src/lib/auth.tsx` – `AuthProvider`/`useAuth()` (Session, eigenes Profil, Partner, Paar) und deutsche Fehlermeldungen
 - `src/pages/Login.tsx` – Anmelden / Konto erstellen mit E-Mail + Passwort. Bewusst kein Magic Link: Free-Projekte können Mail-Vorlagen nicht ändern, Mails gehen ohne eigenes SMTP nur an Org-Mitglieder, und Links aus Mails öffnen auf dem iPhone Safari statt der PWA.
