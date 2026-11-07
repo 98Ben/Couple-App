@@ -46,3 +46,11 @@ Es erscheinen ein **Public Key** und ein **Private Key**. Den Private Key nieman
 **e) Auf beiden iPhones:** App **vom Home-Bildschirm** öffnen → Startseite → **Aktivieren** → Mitteilungen erlauben → **Test-Benachrichtigung senden**.
 
 Benachrichtigungen kommen bei: „Ich denk an dich“, neuer Liebesnotiz oder Doodle, beantworteter Tagesfrage, neuem Moment, Ort, Countdown, Wunsch oder Bucket-List-Eintrag. Gesendet wird immer an die Geräte des Partners.
+
+## 6. Extras: Quiz, Stimmung, Zeitkapseln
+
+**a) Datenbank:** `migrations/0005_extras.sql` im SQL Editor ausführen. Die Datei legt auch einen täglichen Zeitplan an (8 bzw. 9 Uhr deutscher Zeit), der fällige Zeitkapseln per Push meldet.
+- Prüfen: **Integrations → Cron** (bzw. *Database → Cron Jobs*) sollte den Job `couple-capsules` zeigen.
+- Fehlt er: unter **Database → Extensions** `pg_cron` und `pg_net` aktivieren und die Datei noch einmal ausführen.
+
+**b) Edge Function aktualisieren:** **Edge Functions → notify → Code** öffnen, den Inhalt komplett durch die neue `functions/notify/index.ts` ersetzen und **Deploy** klicken. „Verify JWT" bleibt aus.

@@ -83,3 +83,37 @@ export type Answer = {
   answer: string;
   created_at: string;
 };
+
+export type QuizRound = {
+  id: string;
+  question_ids: number[];
+  submitted: string[];
+  finished_at: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type QuizEntry = {
+  id: string;
+  round_id: string;
+  question_id: number;
+  user_id: string;
+  own_answer: string;
+  guess: string;
+  guess_correct: boolean | null;
+};
+
+export type MoodKey = 'energie' | 'kuschelig' | 'muede' | 'gestresst' | 'entspannt' | 'gluecklich' | 'nachdenklich' | 'krank';
+
+export type Mood = { user_id: string; mood: MoodKey; day: string; updated_at: string };
+
+export type Capsule = {
+  id: string;
+  title: string | null;
+  open_on: string;
+  photo_count: number;
+  created_by: string;
+  created_at: string;
+};
+
+export type CapsuleContent = { capsule_id: string; message: string; photo_paths: string[] };

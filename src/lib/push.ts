@@ -6,7 +6,7 @@ import { supabase } from './supabase';
  * und die Erlaubnis nach einem Antippen angefragt wird.
  */
 
-export type PushKind = 'test' | 'heart' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket';
+export type PushKind = 'test' | 'heart' | 'hug' | 'quiz' | 'capsule' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket';
 
 export type PushState =
   | 'unsupported' // Browser kann kein Push

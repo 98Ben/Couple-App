@@ -115,6 +115,14 @@ const shapes: Record<string, (c: string, a: string) => string> = {
     dot(15.6, 15.8, 1.15, c) +
     heart(12.1, 12.1, 5.6, a),
 
+  gift: (c, a) =>
+    `<rect x="3.5" y="9" width="17" height="11.5" rx="2.4"></rect>` +
+    p('M2.8 9h18.4') +
+    p('M12 9v11.5') +
+    p('M12 9c-1.8-3.6-5.6-4.6-6.2-2.4C5.3 8.4 9 9 12 9Z') +
+    p('M12 9c1.8-3.6 5.6-4.6 6.2-2.4.5 1.8-3.2 2.4-6.2 2.4Z') +
+    heart(16.6, 15.4, 4.4, a),
+
   gamepad: (c, a) =>
     p('M7 7.5h10a4.5 4.5 0 0 1 4.3 5.8l-1 3.4a2.6 2.6 0 0 1-4.4 1L14.3 16H9.7l-1.6 1.7a2.6 2.6 0 0 1-4.4-1l-1-3.4A4.5 4.5 0 0 1 7 7.5Z') +
     p('M7.6 10.4v3.2') +
@@ -124,7 +132,7 @@ const shapes: Record<string, (c: string, a: string) => string> = {
 
 export type IconName =
   | 'home' | 'plane' | 'polaroid' | 'balloon' | 'bag' | 'checklist' | 'calendar' | 'chat' | 'letter'
-  | 'question' | 'doodle' | 'mic' | 'globe' | 'photos' | 'hourglass' | 'sparkle' | 'dice' | 'gamepad';
+  | 'question' | 'doodle' | 'mic' | 'globe' | 'photos' | 'hourglass' | 'sparkle' | 'dice' | 'gamepad' | 'gift';
 
 export const HEART_PATH = HEART_D;
 

@@ -45,3 +45,16 @@ export function relativeTime(ts: string): string {
   if (d.toDateString() === y.toDateString()) return 'gestern';
   return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 }
+
+/** Heutiges Datum in deutscher Zeit als 'YYYY-MM-DD' (wie berlin_today() in der Datenbank). */
+export const berlinToday = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+
+export function daysUntil(iso: string): number {
+  return Math.round((parseDate(iso).getTime() - parseDate(berlinToday()).getTime()) / 86400000);
+}
+
+export function addMonths(iso: string, months: number): string {
+  const d = parseDate(iso);
+  d.setMonth(d.getMonth() + months);
+  return toIso(d);
+}

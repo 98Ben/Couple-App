@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import BottomNav, { type NavKey } from '../components/BottomNav';
 import DaysCounter from '../components/DaysCounter';
 import FeatureTile from '../components/FeatureTile';
+import MoodRings from '../components/MoodRings';
 import { PushBanner, PushSheet } from '../components/PushSettings';
 import { features, groups } from '../features';
 import { useAuth } from '../lib/auth';
@@ -55,6 +56,8 @@ export default function Dashboard() {
         </header>
 
         <DaysCounter editOpen={dateOpen} onEditOpenChange={setDateOpen} />
+
+        <MoodRings />
 
         <PushBanner onOpen={() => setPushOpen(true)} />
 

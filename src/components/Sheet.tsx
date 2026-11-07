@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 /** Weiches Fenster, das von unten hereingleitet (Details, Formulare). */
@@ -26,7 +27,8 @@ export default function Sheet({
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  // Direkt an <body> hängen, damit animierte Eltern-Elemente das Fenster nicht einsperren
+  return createPortal(
     <div className="sheet-wrap">
       <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <section className="sheet" role="dialog" aria-modal="true" aria-label={title}>
@@ -39,6 +41,7 @@ export default function Sheet({
         </header>
         <div className="sheet-body">{children}</div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

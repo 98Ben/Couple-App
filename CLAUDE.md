@@ -35,7 +35,9 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 
 **Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich denk an dich" lässt Herzen aufsteigen und schickt einen Push; `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
 
-**Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Nachrichten und Erinnerungen öffnen eigene Bereichsseiten (`/nachrichten`, `/erinnerungen`, Komponente `AreaPage`), Alltag springt noch per `/#alltag` aufs Dashboard.
+**Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Nachrichten, Erinnerungen und Extras haben eigene Bereichsseiten (`/nachrichten`, `/erinnerungen`, `/extras`, Komponente `AreaPage`; Extras ohne eigenen Nav-Punkt), Alltag springt noch per `/#alltag` aufs Dashboard.
+
+**Bottom-Sheets** werden per Portal an `<body>` gehängt (animierte Eltern mit `transform` würden `position: fixed` sonst einsperren). Klassennamen wie `.burst` nicht für andere Zwecke wiederverwenden (globale Animationen).
 
 **Handschrift**: Caveat (`@fontsource/caveat`) nur für Notiz-Texte auf Post-its und Hinweise im Zeichenfeld.
 
@@ -71,12 +73,18 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab), `Liebesnotizen` (Post-it-Pinnwand inkl. Doodles, Herz-Reaktion), `FrageDesTages` (verpixelte Partner-Antwort, Archiv; Partner-Antworten werden alle 20 s und bei Rückkehr nachgeladen, da RLS sie für Realtime verbirgt), `Doodle` (Komponente `DoodlePad`: 7 Farben, 3 Stärken, Radierer, Rückgängig, Leeren; PNG in Storage, erscheint auch auf der Pinnwand)
 - **Push**: `supabase/migrations/0004_push.sql` (`push_subscriptions`, `save_push_subscription(sub_endpoint, sub_p256dh, sub_auth, sub_user_agent)`), `supabase/functions/notify/index.ts` (Deno, `npm:web-push`; Typ `key` liefert den öffentlichen VAPID-Schlüssel, `test` an sich selbst, sonst an alle Geräte des Partners; Texte und Name serverseitig; 404/410-Geräte werden gelöscht; Secrets VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT; JWT-Prüfung in der Funktion selbst), `public/push-sw.js` (per `workbox.importScripts`: push + notificationclick), `src/lib/push.ts` (Status, Aktivieren nur per Antippen, `notifyPartner(type, preview)`, Abmelden löst Gerät), `src/components/PushSettings.tsx` (Banner auf der Startseite + Einstellungen mit Test-Push, iPhone-Installationsanleitung).
 - Push-Auslöser: neue Zeilen in `love_notes`/`moments`/`places`/`countdowns`/`wishes`/`bucket_items` zentral in `useCoupleTable.insert`; zusätzlich Herz-Button, `answer_today`, „Machen wir!“ im Date-Würfel. Neue Auslöser dort bzw. per `notifyPartner` ergänzen und den Text in der Edge Function anlegen.
+- **Extras** – `supabase/migrations/0005_extras.sql`:
+  - Quiz: `quiz_questions` (80, an die befragte Person gerichtet), `quiz_rounds` (5 Fragen, `submitted` = wer abgegeben hat), `quiz_entries` (eigene Antwort + Tipp; Partner-Einträge per RLS erst nach eigener Abgabe lesbar). Funktionen `quiz_start_round()`, `quiz_submit(r, answers)`, `quiz_judge(entry, correct)` (die befragte Person bewertet den Tipp; Runde endet, wenn alle 10 bewertet sind). Seite `Quiz.tsx` mit Punktestand (richtige Tipps je Person) und Verlauf.
+  - Stimmung: `moods` (eine Zeile pro Person, `day` = Berlin-Tag, gilt nur heute), `set_mood(m)`. Komponente `MoodRings.tsx` auf der Startseite (8 Stimmungen, Ring = Farbverlauf; beim Partner: Umarmung per Push `hug` oder kurze Nachricht als Liebesnotiz).
+  - Zeitkapseln: `capsules` (Hülle sichtbar) + `capsule_contents` (Nachricht, bis 5 Fotos; per RLS für **niemanden** lesbar vor `open_on`), `create_capsule(...)`, `delete_capsule(k)` (nur eigene, gibt Fotopfade zurück). Seite `Zeitkapseln.tsx` (Geschenkboxen in CSS, Öffnen-Animation; „schon geöffnet“ lokal pro Gerät gemerkt).
+  - Täglicher pg_cron-Job `couple-capsules` (07:00 UTC) ruft `notify` mit `{"type":"cron"}` und Header `x-cron-secret` (Geheimnis in `private.cron_secret`, Prüfung über `cron_secret_ok`, nur service_role) → Push an beide bei fälligen Kapseln, setzt `notified_at`.
+  - Neue Push-Typen in `notify`: `hug`, `quiz`, `capsule`, `cron`.
 - `src/lib/storage.ts` – localStorage nur für gerätebezogene Kleinigkeiten
 - `src/styles.css` – gesamtes Styling
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
 
-## Features (12)
+## Features (13)
 | Gruppe | Feature | id |
 |---|---|---|
 | Alltag zu zweit | Einkaufsliste | einkaufsliste |
@@ -90,7 +98,9 @@ Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anl
 | | Tage-Zähler & Jahrestage | tage-zaehler |
 | | Bucket List | bucket-list |
 | | Date-Ideen & Wunschliste | date-ideen |
-| Extras | Spiele / Quiz | quiz |
+| Extras | Spiele / Quiz („Wer kennt wen besser?“) | quiz |
+| | Zeitkapseln | zeitkapseln |
+| Startseite | Tage-Zähler, Stimmungs-Ring | – |
 
 Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, Sprachnachrichten, zeitversetzte Liebesnotizen.
 
@@ -100,7 +110,7 @@ Bewusst weggelassen: Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, S
 3. ✅ Login (E-Mail + Passwort) und Paar-Verknüpfung per Einladungscode
 4. ✅ Hosting auf Cloudflare (Installation auf beiden iPhones noch testen)
 5. ✅ Web Push (Service Worker + Edge Function `notify`, VAPID-Schlüssel; Einrichtung siehe `supabase/EINRICHTUNG.md` Abschnitt 5)
-6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) → offen: Einkaufsliste & To-dos, Kalender, Quiz
+6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) · ✅ Extras (Quiz, Zeitkapseln, Stimmungs-Ring) → offen: Alltag (Einkaufsliste, To-dos, Kalender)
 
 ## Befehle
 - `npm install` – Abhängigkeiten installieren

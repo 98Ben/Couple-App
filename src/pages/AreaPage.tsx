@@ -10,6 +10,10 @@ const TEXT: Partial<Record<FeatureGroup, { sub: string; intro: string }>> = {
     sub: 'Orte, Momente und was noch kommt',
     intro: 'Alles, was ihr zusammen erlebt habt und noch erleben wollt, an einem Ort.',
   },
+  extras: {
+    sub: 'Spielen, raten und für später aufheben',
+    intro: 'Findet heraus, wer wen besser kennt, und versiegelt Botschaften für eure Zukunft.',
+  },
   nachrichten: {
     sub: 'Kleine Botschaften für zwischendurch',
     intro: 'Liebe Worte, eine Frage für jeden Tag und kleine Zeichnungen nur für euch.',

@@ -14,7 +14,7 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-type Kind = 'key' | 'test' | 'heart' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket';
+type Kind = 'key' | 'cron' | 'test' | 'heart' | 'hug' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket' | 'quiz' | 'capsule';
 
 const short = (s: unknown, n = 120) => {
   const t = typeof s === 'string' ? s.trim() : '';
@@ -28,6 +28,12 @@ function message(kind: Kind, name: string, preview: string) {
       return { title: 'Push funktioniert 🎉', body: 'So sehen eure Benachrichtigungen aus.', url: '/' };
     case 'heart':
       return { title: `${name} denkt an dich 💕`, body: 'Tipp hier, um zurückzudenken.', url: '/' };
+    case 'hug':
+      return { title: `${name} schickt dir eine Umarmung 🤗`, body: 'Fühl dich ganz fest gedrückt.', url: '/' };
+    case 'quiz':
+      return { title: `${name} hat die Quiz-Runde gespielt 🎲`, body: 'Du bist dran! Wer kennt wen besser?', url: '/f/quiz' };
+    case 'capsule':
+      return { title: `${name} hat eine Zeitkapsel versiegelt 🎁`, body: preview ? `Sie öffnet sich am ${preview}.` : 'Ihr dürft sie erst später öffnen.', url: '/f/zeitkapseln' };
     case 'note':
       return { title: `Neue Liebesnotiz von ${name} 💌`, body: preview || 'Schau mal auf eure Pinnwand.', url: '/f/liebesnotizen' };
     case 'doodle':
@@ -47,6 +53,32 @@ function message(kind: Kind, name: string, preview: string) {
     default:
       return null;
   }
+}
+
+type Sub = { id: string; endpoint: string; p256dh: string; auth: string };
+
+/** Schickt an alle Geräte und räumt abgemeldete (404/410) auf. Gibt die Zahl erfolgreicher Zustellungen zurück. */
+// deno-lint-ignore no-explicit-any
+async function deliver(admin: any, subs: Sub[], body: string) {
+  let sent = 0;
+  const gone: string[] = [];
+  await Promise.all(
+    subs.map(async (s) => {
+      try {
+        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, {
+          TTL: 60 * 60 * 24,
+          urgency: 'high',
+        });
+        sent++;
+      } catch (e) {
+        const status = (e as { statusCode?: number }).statusCode;
+        if (status === 404 || status === 410) gone.push(s.id);
+        else console.error('Push fehlgeschlagen', status, (e as Error).message);
+      }
+    }),
+  );
+  if (gone.length) await admin.from('push_subscriptions').delete().in('id', gone);
+  return sent;
 }
 
 Deno.serve(async (req) => {
@@ -69,11 +101,37 @@ Deno.serve(async (req) => {
   // Öffentlichen Schlüssel für die Anmeldung im Browser ausliefern
   if (kind === 'key') return json({ publicKey });
 
-  // Absender prüfen: gültige Anmeldung der App
-  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
     auth: { persistSession: false },
   });
+  webpush.setVapidDetails(subject, publicKey, privateKey);
+
+  // Täglicher Zeitplan aus der Datenbank: fällige Zeitkapseln melden
+  if (kind === 'cron') {
+    const secret = req.headers.get('x-cron-secret') ?? '';
+    const { data: ok } = await admin.rpc('cron_secret_ok', { s: secret });
+    if (!ok) return json({ error: 'Nicht erlaubt' }, 401);
+    const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    const { data: due } = await admin.from('capsules').select('id, couple_id, title').lte('open_on', today).is('notified_at', null);
+    let sentCron = 0;
+    for (const cap of due ?? []) {
+      const { data: members } = await admin.from('profiles').select('id').eq('couple_id', cap.couple_id);
+      const ids = (members ?? []).map((m) => m.id as string);
+      const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').in('user_id', ids);
+      const body = JSON.stringify({
+        title: 'Eine Zeitkapsel ist bereit 🎁',
+        body: cap.title ? `„${cap.title}“ darf jetzt geöffnet werden.` : 'Heute dürft ihr sie öffnen.',
+        url: '/f/zeitkapseln',
+        tag: `capsule-${cap.id}`,
+      });
+      sentCron += await deliver(admin, subs ?? [], body);
+      await admin.from('capsules').update({ notified_at: new Date().toISOString() }).eq('id', cap.id);
+    }
+    return json({ capsules: (due ?? []).length, sent: sentCron });
+  }
+
+  // Absender prüfen: gültige Anmeldung der App
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   const { data: userData, error: userError } = await admin.auth.getUser(token);
   if (userError || !userData.user) return json({ error: 'Nicht angemeldet' }, 401);
   const me = userData.user.id;
@@ -94,28 +152,7 @@ Deno.serve(async (req) => {
 
   const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').in('user_id', recipients);
 
-  webpush.setVapidDetails(subject, publicKey, privateKey);
   const body = JSON.stringify({ ...msg, tag: kind });
-  let sent = 0;
-  const gone: string[] = [];
-
-  await Promise.all(
-    (subs ?? []).map(async (s) => {
-      try {
-        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, {
-          TTL: 60 * 60 * 24,
-          urgency: 'high',
-        });
-        sent++;
-      } catch (e) {
-        const status = (e as { statusCode?: number }).statusCode;
-        // Abgemeldete oder abgelaufene Geräte aufräumen
-        if (status === 404 || status === 410) gone.push(s.id as string);
-        else console.error('Push fehlgeschlagen', status, (e as Error).message);
-      }
-    }),
-  );
-  if (gone.length) await admin.from('push_subscriptions').delete().in('id', gone);
-
-  return json({ sent, removed: gone.length });
+  const sent = await deliver(admin, subs ?? [], body);
+  return json({ sent });
 });

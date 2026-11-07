@@ -13,6 +13,8 @@ import DateIdeen from './pages/features/DateIdeen';
 import Doodle from './pages/features/Doodle';
 import FrageDesTages from './pages/features/FrageDesTages';
 import Liebesnotizen from './pages/features/Liebesnotizen';
+import Quiz from './pages/features/Quiz';
+import Zeitkapseln from './pages/features/Zeitkapseln';
 import FotoTimeline from './pages/features/FotoTimeline';
 // Karte (Leaflet) erst laden, wenn sie gebraucht wird
 const Weltkarte = lazy(() => import('./pages/features/Weltkarte'));
@@ -40,6 +42,9 @@ export default function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/erinnerungen" element={<AreaPage group="erinnerungen" />} />
         <Route path="/nachrichten" element={<AreaPage group="nachrichten" />} />
+        <Route path="/extras" element={<AreaPage group="extras" />} />
+        <Route path="/f/quiz" element={<Quiz />} />
+        <Route path="/f/zeitkapseln" element={<Zeitkapseln />} />
         <Route path="/f/liebesnotizen" element={<Liebesnotizen />} />
         <Route path="/f/frage-des-tages" element={<FrageDesTages />} />
         <Route path="/f/doodle" element={<Doodle />} />

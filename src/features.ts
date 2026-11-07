@@ -152,8 +152,17 @@ export const features: Feature[] = [
     short: 'Wer kennt wen besser?',
     icon: 'gamepad',
     group: 'extras',
-    status: 'geplant',
-    planned: ['Quiz „Wer kennt wen besser?"', 'Punktestand für beide', 'Eigene Fragen hinzufügen'],
+    status: 'fertig',
+    planned: ['Quiz „Wer kennt wen besser?"', 'Punktestand für beide', 'Runden mit je 5 Fragen'],
+  },
+  {
+    id: 'zeitkapseln',
+    title: 'Zeitkapseln',
+    short: 'Für später versiegelt',
+    icon: 'gift',
+    group: 'extras',
+    status: 'fertig',
+    planned: ['Nachricht und Fotos versiegeln', 'Öffnen erst am gewählten Tag', 'Push, wenn eine Kapsel bereit ist'],
   },
 ];
 
