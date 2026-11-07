@@ -128,7 +128,7 @@ export default function DaysCounter({ editOpen, onEditOpenChange }: { editOpen: 
   );
 }
 
-function StartDateForm({ onDone }: { onDone: () => void }) {
+export function StartDateForm({ onDone }: { onDone: () => void }) {
   const { couple, refresh } = useAuth();
   const [value, setValue] = useState(couple?.start_date ?? '');
   const [busy, setBusy] = useState(false);

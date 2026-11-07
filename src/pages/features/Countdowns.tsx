@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Pencil } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
 import ConfirmButton from '../../components/ConfirmButton';
 import Empty from '../../components/Empty';
 import Sheet from '../../components/Sheet';
 import SubHeader from '../../components/SubHeader';
 import { useAuth } from '../../lib/auth';
-import { formatDate, parseDate, toIso, todayIso } from '../../lib/dates';
+import { at, formatDate, nextOccurrence, parseDate, toIso, todayIso } from '../../lib/dates';
 import type { Countdown } from '../../lib/types';
 import { useCoupleTable } from '../../lib/useCoupleTable';
 import { tones } from '../../theme';
@@ -24,29 +25,6 @@ type Entry = {
   source?: Countdown;
 };
 
-function at(dateIso: string, time: string | null) {
-  const d = parseDate(dateIso);
-  if (time) {
-    const [h, m] = time.split(':').map(Number);
-    d.setHours(h, m, 0, 0);
-  }
-  return d;
-}
-
-/** Für jährliche Termine das nächste Vorkommen (heute zählt noch) und das vorige als Start. */
-function nextOccurrence(dateIso: string, time: string | null, now: Date) {
-  const base = at(dateIso, time);
-  const make = (y: number) => {
-    const d = new Date(base);
-    d.setFullYear(y);
-    return d;
-  };
-  let target = make(now.getFullYear());
-  const endOfTarget = time ? target : new Date(target.getFullYear(), target.getMonth(), target.getDate() + 1);
-  if (endOfTarget <= now) target = make(now.getFullYear() + 1);
-  return { target, from: make(target.getFullYear() - 1) };
-}
-
 function parts(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
   return { d: Math.floor(s / 86400), h: Math.floor((s % 86400) / 3600), m: Math.floor((s % 3600) / 60) };
@@ -54,10 +32,11 @@ function parts(ms: number) {
 
 export default function Countdowns() {
   const { couple } = useAuth();
-  const { rows, loading, error, insert, remove } = useCoupleTable<Countdown>('countdowns', { column: 'target_date' });
+  const { rows, loading, error, insert, update, remove } = useCoupleTable<Countdown>('countdowns', { column: 'target_date' });
   const [now, setNow] = useState(() => new Date());
   const [adding, setAdding] = useState(false);
   const [viewing, setViewing] = useState<Entry | null>(null);
+  const [editing, setEditing] = useState<Countdown | null>(null);
 
   useEffect(() => {
     const t = window.setInterval(() => setNow(new Date()), 1000);
@@ -141,6 +120,15 @@ export default function Countdowns() {
             </p>
             {viewing.source && (
               <div className="detail-actions">
+                <button
+                  className="secondary-btn press"
+                  onClick={() => {
+                    setEditing(viewing.source!);
+                    setViewing(null);
+                  }}
+                >
+                  <Pencil size={16} style={{ verticalAlign: '-2px' }} /> Bearbeiten
+                </button>
                 <ConfirmButton
                   onConfirm={async () => {
                     const id = viewing.source!.id;
@@ -151,6 +139,22 @@ export default function Countdowns() {
               </div>
             )}
           </div>
+        )}
+      </Sheet>
+
+      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Countdown bearbeiten">
+        {editing && (
+          <CountdownForm
+            key={editing.id}
+            initial={editing}
+            onCancel={() => setEditing(null)}
+            onSave={async (v) => {
+              const res = await update(editing.id, v);
+              if (res.error) return res.error;
+              setEditing(null);
+              return null;
+            }}
+          />
         )}
       </Sheet>
 
@@ -205,17 +209,19 @@ function CountdownCard({ entry, now, big, onOpen }: { entry: Entry; now: Date; b
 }
 
 function CountdownForm({
+  initial,
   onSave,
   onCancel,
 }: {
+  initial?: Countdown;
   onSave: (v: Pick<Countdown, 'title' | 'target_date' | 'target_time' | 'emoji' | 'yearly'>) => Promise<string | null>;
   onCancel: () => void;
 }) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [emoji, setEmoji] = useState('🎉');
-  const [yearly, setYearly] = useState(false);
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [date, setDate] = useState(initial?.target_date ?? '');
+  const [time, setTime] = useState(initial?.target_time?.slice(0, 5) ?? '');
+  const [emoji, setEmoji] = useState(initial?.emoji ?? '🎉');
+  const [yearly, setYearly] = useState(initial?.yearly ?? false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -265,7 +271,7 @@ function CountdownForm({
       </label>
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="primary-btn press" disabled={busy || !title.trim() || !date}>
-        {busy ? 'Wird gespeichert …' : 'Countdown starten'}
+        {busy ? 'Wird gespeichert …' : initial ? 'Speichern' : 'Countdown starten'}
       </button>
       <button type="button" className="link-btn" onClick={onCancel}>
         Abbrechen

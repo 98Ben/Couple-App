@@ -58,3 +58,26 @@ export function addMonths(iso: string, months: number): string {
   d.setMonth(d.getMonth() + months);
   return toIso(d);
 }
+
+export function at(dateIso: string, time: string | null) {
+  const d = parseDate(dateIso);
+  if (time) {
+    const [h, m] = time.split(':').map(Number);
+    d.setHours(h, m, 0, 0);
+  }
+  return d;
+}
+
+/** Für jährliche Termine das nächste Vorkommen (heute zählt noch) und das vorige als Start. */
+export function nextOccurrence(dateIso: string, time: string | null, now: Date) {
+  const base = at(dateIso, time);
+  const make = (y: number) => {
+    const d = new Date(base);
+    d.setFullYear(y);
+    return d;
+  };
+  let target = make(now.getFullYear());
+  const endOfTarget = time ? target : new Date(target.getFullYear(), target.getMonth(), target.getDate() + 1);
+  if (endOfTarget <= now) target = make(now.getFullYear() + 1);
+  return { target, from: make(target.getFullYear() - 1) };
+}

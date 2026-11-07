@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { X } from 'lucide-react';
+import { Pencil, X } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
+import ConfirmButton from '../../components/ConfirmButton';
+import Sheet from '../../components/Sheet';
 import HeartBurst from '../../components/HeartBurst';
 import SubHeader from '../../components/SubHeader';
 import { useAuth } from '../../lib/auth';
@@ -92,6 +94,7 @@ export default function DateIdeen() {
   const [newSetting, setNewSetting] = useState<DateIdea['setting']>('egal');
   const [newCost, setNewCost] = useState<DateIdea['cost']>('guenstig');
   const [showAll, setShowAll] = useState(false);
+  const [editing, setEditing] = useState<DateIdea | null>(null);
   const addIdea = async (e: FormEvent) => {
     e.preventDefault();
     if (!newIdea.trim()) return;
@@ -269,9 +272,11 @@ export default function DateIdeen() {
             {(showAll ? ideas.rows : ideas.rows.slice(-6).reverse()).map((i) => (
               <li key={i.id}>
                 <span className="idea-tags">{settingLabel(i.setting)}{costLabel(i.cost)}</span>
-                <span className="idea-title">{i.title}</span>
-                <button className="x-btn press" onClick={() => ideas.remove(i.id)} aria-label={`${i.title} löschen`}>
-                  <X size={16} />
+                <button className="idea-title plain-btn" onClick={() => setEditing(i)}>
+                  {i.title}
+                </button>
+                <button className="x-btn press" onClick={() => setEditing(i)} aria-label={`${i.title} bearbeiten`}>
+                  <Pencil size={15} />
                 </button>
               </li>
             ))}
@@ -284,6 +289,74 @@ export default function DateIdeen() {
         </section>
       </main>
       <BottomNav active="erinnerungen" />
+      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Idee bearbeiten">
+        {editing && (
+          <IdeaEdit
+            key={editing.id}
+            idea={editing}
+            onSave={async (v) => {
+              const res = await ideas.update(editing.id, v);
+              if (!res.error) setEditing(null);
+              return res.error;
+            }}
+            onDelete={() => {
+              ideas.remove(editing.id);
+              if (shown?.id === editing.id) setShown(null);
+              setEditing(null);
+            }}
+          />
+        )}
+      </Sheet>
     </>
+  );
+}
+
+function IdeaEdit({
+  idea,
+  onSave,
+  onDelete,
+}: {
+  idea: DateIdea;
+  onSave: (v: Partial<DateIdea>) => Promise<string | null>;
+  onDelete: () => void;
+}) {
+  const [title, setTitle] = useState(idea.title);
+  const [setting, setSetting] = useState<DateIdea['setting']>(idea.setting);
+  const [cost, setCost] = useState<DateIdea['cost']>(idea.cost);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setBusy(true);
+    setError(await onSave({ title: title.trim(), setting, cost }));
+    setBusy(false);
+  };
+  return (
+    <form className="form" onSubmit={save}>
+      <label className="field">
+        <span>Idee</span>
+        <input value={title} maxLength={120} required onChange={(e) => setTitle(e.target.value)} />
+      </label>
+      <div className="chips">
+        {[...SETTINGS, { id: 'egal', label: 'Egal', emoji: '🔀' } as const].map((s) => (
+          <button type="button" key={s.id} className={`chip-btn small press${setting === s.id ? ' on' : ''}`} aria-pressed={setting === s.id} onClick={() => setSetting(s.id)}>
+            {s.emoji} {s.label}
+          </button>
+        ))}
+      </div>
+      <div className="chips">
+        {COSTS.map((c) => (
+          <button type="button" key={c.id} className={`chip-btn small press${cost === c.id ? ' on' : ''}`} aria-pressed={cost === c.id} onClick={() => setCost(c.id)}>
+            {c.emoji} {c.label}
+          </button>
+        ))}
+      </div>
+      {error && <p className="form-error">{error}</p>}
+      <button className="primary-btn press" disabled={busy || !title.trim()}>
+        Speichern
+      </button>
+      <ConfirmButton onConfirm={onDelete} />
+    </form>
   );
 }

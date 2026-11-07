@@ -41,8 +41,18 @@ export function PushBanner({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-/** Einstellungen für Benachrichtigungen auf diesem Gerät. */
+/** Einstellungen für Benachrichtigungen auf diesem Gerät, als Fenster. */
 export function PushSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  return (
+    <Sheet open={open} onClose={onClose} title="Benachrichtigungen">
+      {open && <PushPanel />}
+    </Sheet>
+  );
+}
+
+/** Inhalt der Benachrichtigungs-Einstellungen (auch auf der Einstellungen-Seite). */
+export function PushPanel() {
+  const open = true;
   const [state, setState] = useState<PushState | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -72,7 +82,7 @@ export function PushSheet({ open, onClose }: { open: boolean; onClose: () => voi
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Benachrichtigungen">
+    <div className="push-panel">
       {state === 'needs-install' && (
         <div className="detail">
           <p className="detail-note">Auf dem iPhone gibt es Benachrichtigungen nur für installierte Apps. So geht&apos;s:</p>
@@ -128,6 +138,6 @@ export function PushSheet({ open, onClose }: { open: boolean; onClose: () => voi
 
       {msg && <p className="toast">{msg}</p>}
       {error && <p className="form-error">{error}</p>}
-    </Sheet>
+    </div>
   );
 }

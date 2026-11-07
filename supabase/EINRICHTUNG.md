@@ -58,3 +58,25 @@ Benachrichtigungen kommen bei: „Ich denk an dich“, neuer Liebesnotiz oder Do
 ## 7. Alltag: Einkaufsliste und To-dos
 
 `migrations/0006_alltag.sql` im SQL Editor ausführen. Die Edge Function muss dafür nicht geändert werden (im Alltag gibt es bewusst keine Pushes).
+
+## 8. Datensicherung (einmalig einrichten)
+
+Der kostenlose Supabase-Plan macht **keine automatischen Backups**. Deshalb gibt es zwei Wege:
+
+**a) In der App:** Einstellungen (Zahnrad oben rechts) → **Alles exportieren**. Lädt alle Texte und Fotos als ZIP-Datei herunter (auf dem iPhone: „In Dateien sichern“). Versiegelte Zeitkapseln bleiben versiegelt.
+
+**b) Automatisch jeden Sonntag über GitHub.** Dazu drei Secrets anlegen: GitHub → Repository **Couple-App** → **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Name | Wert |
+|---|---|
+| `SUPABASE_DB_URL` | Supabase → oben **Connect** → **Session pooler** → Verbindungs-Text kopieren und `[YOUR-PASSWORD]` durch dein Datenbank-Passwort ersetzen |
+| `SUPABASE_SECRET_KEY` | Supabase → **Project Settings → API Keys** → **Secret key** (bzw. `service_role`) |
+| `BACKUP_PASSWORD` | ein langes, selbst ausgedachtes Passwort – gut aufschreiben! |
+
+Diese Werte **nie** in Code oder Chat einfügen, nur dort als Secret.
+
+Testen: GitHub → **Actions → Backup → Run workflow**. Nach ein paar Minuten liegt beim Lauf unter **Artifacts** eine Datei `couple-app-backup-<Datum>`. Darin steckt ein verschlüsseltes 7z-Archiv (Datenbank, Konten, Fotos); öffnen mit **7-Zip** und dem `BACKUP_PASSWORD`. Sicherungen bleiben 90 Tage liegen.
+
+Warum verschlüsselt? Das Repository ist öffentlich, und Artifacts öffentlicher Repositories können andere angemeldete GitHub-Nutzer herunterladen.
+
+Nebeneffekt: Der wöchentliche Zugriff hält das Supabase-Projekt wach (kostenlose Projekte pausieren nach 7 Tagen ohne Nutzung).

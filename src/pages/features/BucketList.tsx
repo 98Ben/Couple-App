@@ -1,8 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, Pencil } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
+import ConfirmButton from '../../components/ConfirmButton';
 import Empty from '../../components/Empty';
 import HeartBurst from '../../components/HeartBurst';
+import Sheet from '../../components/Sheet';
 import SubHeader from '../../components/SubHeader';
 import { useAuth } from '../../lib/auth';
 import { formatDateShort } from '../../lib/dates';
@@ -29,6 +31,7 @@ export default function BucketList() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [burst, setBurst] = useState<{ id: string; n: number } | null>(null);
+  const [editing, setEditing] = useState<BucketItem | null>(null);
 
   const visible = useMemo(() => rows.filter((r) => filter === 'alle' || r.category === filter), [rows, filter]);
   const open = visible.filter((r) => !r.done_at);
@@ -69,15 +72,15 @@ export default function BucketList() {
           {item.done_at && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
           {burst?.id === item.id && <HeartBurst key={burst.n} />}
         </button>
-        <span className="bucket-text">
+        <button className="bucket-text plain-btn" onClick={() => setEditing(item)} aria-label={`${item.title} bearbeiten`}>
           <span className="bucket-title">{item.title}</span>
           <span className="bucket-meta">
             {c.emoji} {c.label}
             {item.done_at && ` · erledigt am ${formatDateShort(item.done_at)}`}
           </span>
-        </span>
-        <button className="x-btn press" onClick={() => remove(item.id)} aria-label={`${item.title} löschen`}>
-          <X size={16} />
+        </button>
+        <button className="x-btn press" onClick={() => setEditing(item)} aria-label={`${item.title} bearbeiten`}>
+          <Pencil size={15} />
         </button>
       </li>
     );
@@ -159,6 +162,72 @@ export default function BucketList() {
         )}
       </main>
       <BottomNav active="erinnerungen" />
+      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Wunsch bearbeiten">
+        {editing && (
+          <EditForm
+            key={editing.id}
+            item={editing}
+            onSave={async (v) => {
+              const res = await update(editing.id, v);
+              if (!res.error) setEditing(null);
+              return res.error;
+            }}
+            onDelete={() => {
+              remove(editing.id);
+              setEditing(null);
+            }}
+          />
+        )}
+      </Sheet>
     </>
+  );
+}
+
+function EditForm({
+  item,
+  onSave,
+  onDelete,
+}: {
+  item: BucketItem;
+  onSave: (v: Partial<BucketItem>) => Promise<string | null>;
+  onDelete: () => void;
+}) {
+  const [title, setTitle] = useState(item.title);
+  const [category, setCategory] = useState<BucketCategory>(item.category);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setBusy(true);
+    setError(await onSave({ title: title.trim(), category }));
+    setBusy(false);
+  };
+  return (
+    <form className="form" onSubmit={save}>
+      <label className="field">
+        <span>Wunsch</span>
+        <input value={title} maxLength={120} required onChange={(e) => setTitle(e.target.value)} />
+      </label>
+      <div className="chips" role="radiogroup" aria-label="Kategorie">
+        {CATEGORIES.map((c) => (
+          <button
+            type="button"
+            key={c.id}
+            role="radio"
+            aria-checked={category === c.id}
+            className={`chip-btn press${category === c.id ? ' on' : ''}`}
+            onClick={() => setCategory(c.id)}
+          >
+            {c.emoji} {c.label}
+          </button>
+        ))}
+      </div>
+      {error && <p className="form-error">{error}</p>}
+      <button className="primary-btn press" disabled={busy || !title.trim()}>
+        Speichern
+      </button>
+      <ConfirmButton onConfirm={onDelete} />
+    </form>
   );
 }

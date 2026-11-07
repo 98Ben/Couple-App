@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import BottomNav, { type NavKey } from '../components/BottomNav';
+import { Link } from 'react-router-dom';
+import { Settings } from 'lucide-react';
+import BottomNav from '../components/BottomNav';
 import DaysCounter from '../components/DaysCounter';
-import FeatureTile from '../components/FeatureTile';
 import MoodRings from '../components/MoodRings';
 import { PushBanner, PushSheet } from '../components/PushSettings';
+import TodayOverview from '../components/TodayOverview';
 import { features, groups } from '../features';
 import { useAuth } from '../lib/auth';
 import { Heart, Icon } from '../icons/Icon';
@@ -18,25 +19,14 @@ function greeting() {
 }
 
 export default function Dashboard() {
-  const { hash } = useLocation();
-  const { me, partner, signOut } = useAuth();
+  const { me, partner } = useAuth();
   const [pushOpen, setPushOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const names = [me?.display_name, partner?.display_name].filter(Boolean).join(' & ') || 'ihr zwei';
-  const section = hash.replace('#', '');
 
-  // Navigation unten springt zum passenden Bereich
   useEffect(() => {
-    if (!section) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [section]);
-
-  const active: NavKey = (['alltag', 'nachrichten', 'erinnerungen'] as NavKey[]).includes(section as NavKey)
-    ? (section as NavKey)
-    : 'start';
+    window.scrollTo({ top: 0 });
+  }, []);
 
   return (
     <>
@@ -50,9 +40,9 @@ export default function Dashboard() {
             <p className="top-small">{greeting()}, {names} ✨</p>
             <h1 className="top-title">Couple App</h1>
           </div>
-          <span className="beat">
-            <Heart size={34} outline color={colors.coral} weight={2} />
-          </span>
+          <Link to="/einstellungen" className="settings-btn press" aria-label="Einstellungen">
+            <Settings size={22} color={colors.muted} strokeWidth={2} />
+          </Link>
         </header>
 
         <DaysCounter editOpen={dateOpen} onEditOpenChange={setDateOpen} />
@@ -61,45 +51,41 @@ export default function Dashboard() {
 
         <PushBanner onOpen={() => setPushOpen(true)} />
 
-        {groups.map((g, gi) => {
-          const items = features.filter((f) => f.group === g.id);
-          if (items.length === 0) return null;
-          const tone = tones[g.tone];
-          return (
-            <section key={g.id} id={g.id} className="group appear" style={{ animationDelay: `${0.08 * (gi + 1)}s` }}>
-              <h2 className="group-title">
+        <TodayOverview />
+
+        <section className="areas appear" style={{ animationDelay: '0.14s' }} aria-label="Bereiche">
+          {groups.map((g) => {
+            const tone = tones[g.tone];
+            const names = features.filter((f) => f.group === g.id).map((f) => f.title).join(' · ');
+            return (
+              <Link
+                key={g.id}
+                to={`/${g.id}`}
+                className="area-tile press"
+                style={{ background: tone.tileBg, boxShadow: `0 8px 22px ${tone.shadow}` }}
+              >
                 <span className="group-chip blob" style={{ background: tone.main, boxShadow: `0 6px 14px ${tone.shadow}` }}>
                   <Icon name={g.icon} size={20} stroke="#FFFFFF" accent="#FFFFFF" />
                 </span>
-                {g.title}
-              </h2>
-              <div className="grid">
-                {items.map((f, i) => (
-                  <FeatureTile key={f.id} feature={f} tone={tone} wide={i === items.length - 1 && items.length % 2 === 1} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
+                <span className="area-text">
+                  <span className="tile-title">{g.navLabel}</span>
+                  <span className="tile-short area-names">{names}</span>
+                </span>
+                <span className="tile-heart">
+                  <Heart size={18} color={tone.main} />
+                </span>
+              </Link>
+            );
+          })}
+        </section>
 
         <footer className="foot">
           <span>
             Mit Liebe gemacht <Heart size={12} />
           </span>
-          <span className="foot-links">
-            <button className="link-btn" onClick={() => setPushOpen(true)}>
-              Benachrichtigungen
-            </button>
-            <button className="link-btn" onClick={() => setDateOpen(true)}>
-              Startdatum
-            </button>
-            <button className="link-btn" onClick={signOut}>
-              Abmelden
-            </button>
-          </span>
         </footer>
       </main>
-      <BottomNav active={active} />
+      <BottomNav active="start" />
       <PushSheet open={pushOpen} onClose={() => setPushOpen(false)} />
     </>
   );

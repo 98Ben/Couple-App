@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { Heart } from './icons/Icon';
 import Dashboard from './pages/Dashboard';
+import Einstellungen from './pages/Einstellungen';
+import OfflineBanner from './components/OfflineBanner';
 import AreaPage from './pages/AreaPage';
 import FeaturePage from './pages/FeaturePage';
 import Login from './pages/Login';
@@ -42,6 +44,7 @@ export default function App() {
     content = (
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/einstellungen" element={<Einstellungen />} />
         <Route path="/erinnerungen" element={<AreaPage group="erinnerungen" />} />
         <Route path="/nachrichten" element={<AreaPage group="nachrichten" />} />
         <Route path="/alltag" element={<AreaPage group="alltag" />} />
@@ -64,5 +67,10 @@ export default function App() {
     );
   }
 
-  return <div className="app">{content}</div>;
+  return (
+    <div className="app">
+      <OfflineBanner />
+      {content}
+    </div>
+  );
 }

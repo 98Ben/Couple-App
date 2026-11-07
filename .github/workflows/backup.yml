@@ -1,0 +1,77 @@
+# Wöchentliche Sicherung der Couple App (Datenbank + Fotos).
+# Ergebnis: unter GitHub → Actions → „Backup“ → letzter Lauf → Artifacts (90 Tage aufbewahrt).
+# Benötigte Repository-Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL       – Session-Pooler-Verbindung inkl. Passwort (Supabase → Connect → Session pooler)
+#   SUPABASE_SECRET_KEY   – Secret key bzw. service_role key (Supabase → Project Settings → API Keys)
+#   BACKUP_PASSWORD       – selbst ausgedachtes Passwort für das verschlüsselte Archiv
+# Das Repository ist öffentlich: Artifacts könnten andere GitHub-Nutzer herunterladen.
+# Deshalb wird nur ein mit AES-256 verschlüsseltes 7z-Archiv hochgeladen (öffnen mit 7-Zip).
+name: Backup
+
+on:
+  schedule:
+    - cron: '30 2 * * 0' # sonntags 02:30 UTC
+  workflow_dispatch: {} # manuell: Actions → Backup → Run workflow
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Datum
+        id: date
+        run: echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Postgres-Werkzeuge (Version 17)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Datenbank sichern
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir -p backup
+          PGDUMP=/usr/lib/postgresql/17/bin/pg_dump
+          # Eigene Tabellen, Funktionen und Daten
+          $PGDUMP "$DB_URL" --schema=public --schema=private --no-owner --no-privileges -f backup/datenbank.sql
+          # Konten (nötig, damit Profile beim Wiederherstellen ihre Besitzer finden)
+          $PGDUMP "$DB_URL" --data-only --table=auth.users --no-owner -f backup/konten.sql
+          ls -lh backup
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fotos sichern
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://kpfahnaxdgvhntsvfagx.supabase.co' }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          npm install --no-save --no-audit --no-fund @supabase/supabase-js@2
+          node scripts/backup-photos.mjs backup/fotos
+          du -sh backup/fotos || true
+
+      - name: Verschlüsseln
+        env:
+          PW: ${{ secrets.BACKUP_PASSWORD }}
+        run: |
+          if [ -z "$PW" ]; then echo "Secret BACKUP_PASSWORD fehlt – ohne Verschlüsselung wird nichts hochgeladen." >&2; exit 1; fi
+          command -v 7z > /dev/null || sudo apt-get install -y -qq p7zip-full
+          7z a -t7z -mhe=on -mx=1 -p"$PW" "couple-app-backup-${{ steps.date.outputs.today }}.7z" ./backup/* > /dev/null
+          rm -rf backup
+          ls -lh *.7z
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: couple-app-backup-${{ steps.date.outputs.today }}
+          path: couple-app-backup-*.7z
+          compression-level: 0
+          retention-days: 90
