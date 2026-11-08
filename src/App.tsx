@@ -5,6 +5,8 @@ import { Heart } from './icons/Icon';
 import Dashboard from './pages/Dashboard';
 import Einstellungen from './pages/Einstellungen';
 import OfflineBanner from './components/OfflineBanner';
+import LetterArrival from './components/LetterArrival';
+import Wuensche from './pages/features/Wuensche';
 import AreaPage from './pages/AreaPage';
 import FeaturePage from './pages/FeaturePage';
 import Login from './pages/Login';
@@ -42,8 +44,11 @@ export default function App() {
     content = <Pairing />;
   } else {
     content = (
+      <>
+      <LetterArrival />
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/f/wuensche" element={<Wuensche />} />
         <Route path="/einstellungen" element={<Einstellungen />} />
         <Route path="/erinnerungen" element={<AreaPage group="erinnerungen" />} />
         <Route path="/nachrichten" element={<AreaPage group="nachrichten" />} />
@@ -64,6 +69,7 @@ export default function App() {
         <Route path="/f/:id" element={<FeaturePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </>
     );
   }
 

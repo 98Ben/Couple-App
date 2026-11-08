@@ -35,13 +35,14 @@ const BURST = [
 ];
 
 /**
- * Tage-Zähler: bewusst schlicht. Einziger Knopf ist „Ich denk an dich“.
+ * Tage-Zähler: bewusst schlicht. Knöpfe: „Ich vermisse dich“ und „Umarmung“ (beide schicken einen Push).
  * Das Startdatum ändert man versteckt (lange auf die Karte drücken oder „Startdatum“ unten auf der Startseite).
  */
 export default function DaysCounter({ editOpen, onEditOpenChange }: { editOpen: boolean; onEditOpenChange: (open: boolean) => void }) {
   const { couple } = useAuth();
   const start = couple?.start_date ?? null; // gemeinsam in Supabase gespeichert
   const [burst, setBurst] = useState(0); // Zähler: jeder Klick startet die Animation neu
+  const [sent, setSent] = useState<'miss' | 'hug' | null>(null);
   const timer = useRef<number>();
   const press = useRef<number>();
   const s = useMemo(() => (start ? stats(start) : null), [start]);
@@ -54,11 +55,15 @@ export default function DaysCounter({ editOpen, onEditOpenChange }: { editOpen: 
     [],
   );
 
-  const sendHeart = () => {
+  const send = (kind: 'miss' | 'hug') => {
     window.clearTimeout(timer.current);
-    notifyPartner('heart');
+    notifyPartner(kind);
+    setSent(kind);
     setBurst((n) => n + 1);
-    timer.current = window.setTimeout(() => setBurst(0), 1800);
+    timer.current = window.setTimeout(() => {
+      setBurst(0);
+      setSent(null);
+    }, 1800);
   };
 
   // Langes Drücken (0,7 s) auf die Zahl öffnet das Startdatum
@@ -105,16 +110,22 @@ export default function DaysCounter({ editOpen, onEditOpenChange }: { editOpen: 
           </div>
         )}
 
-        <button className="love-btn press" onClick={sendHeart}>
-          <Heart size={18} color="#FF6B6B" />
-          {burst ? 'Herz gesendet!' : 'Ich denk an dich'}
-        </button>
+        <div className="love-row">
+          <button className="love-btn press" onClick={() => send('miss')}>
+            <Heart size={18} color="#FF6B6B" />
+            {sent === 'miss' ? 'Gesendet!' : 'Ich vermisse dich'}
+          </button>
+          <button className="love-btn hug-btn press" onClick={() => send('hug')} aria-label="Umarmung schicken">
+            <span aria-hidden="true">🤗</span>
+            {sent === 'hug' ? 'Gedrückt!' : 'Umarmung'}
+          </button>
+        </div>
 
         {burst > 0 && (
           <div className="burst" aria-hidden="true" key={burst}>
             {BURST.map((b, i) => (
-              <span key={i} style={{ left: b.left, animationDelay: b.delay }}>
-                <Heart size={b.size} color="#FFFFFF" />
+              <span key={i} style={{ left: b.left, animationDelay: b.delay, fontSize: b.size + 4 }}>
+                {sent === 'hug' ? '🤗' : <Heart size={b.size} color="#FFFFFF" />}
               </span>
             ))}
           </div>

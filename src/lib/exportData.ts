@@ -21,6 +21,8 @@ const TABLES = [
   'shopping_memory',
   'tasks',
   'chores',
+  'letters',
+  'needs',
 ] as const;
 
 type Progress = (text: string) => void;
@@ -45,6 +47,7 @@ export async function buildExport(onProgress: Progress): Promise<File> {
   for (const r of data.places as { photo_path?: string }[]) add(r.photo_path);
   for (const r of data.love_notes as { doodle_path?: string }[]) add(r.doodle_path);
   for (const r of data.capsule_contents as { photo_paths?: string[] }[]) (r.photo_paths ?? []).forEach(add);
+  for (const r of (data.letters ?? []) as { photo_path?: string }[]) add(r.photo_path);
 
   const list = [...paths];
   let i = 0;

@@ -80,3 +80,10 @@ Testen: GitHub → **Actions → Backup → Run workflow**. Nach ein paar Minute
 Warum verschlüsselt? Das Repository ist öffentlich, und Artifacts öffentlicher Repositories können andere angemeldete GitHub-Nutzer herunterladen.
 
 Nebeneffekt: Der wöchentliche Zugriff hält das Supabase-Projekt wach (kostenlose Projekte pausieren nach 7 Tagen ohne Nutzung).
+
+## 9. Briefe mit Zustellzeit, Wünsche, „Ich vermisse dich“
+
+**a) Datenbank:** `migrations/0007_briefe_und_wuensche.sql` im SQL Editor ausführen. Die Datei legt einen zweiten Zeitplan `couple-letters` an (alle 5 Minuten; ruft die Edge Function nur auf, wenn wirklich ein Brief fällig ist).
+- Prüfen: **Integrations → Cron** sollte jetzt `couple-capsules` **und** `couple-letters` zeigen.
+
+**b) Edge Function aktualisieren:** **Edge Functions → notify → Code** komplett durch die neue `functions/notify/index.ts` ersetzen und **Deploy** klicken („Verify JWT“ bleibt aus). Ohne diesen Schritt kommen keine Benachrichtigungen für angekommene Briefe, „Ich vermisse dich“ und neue Wünsche.

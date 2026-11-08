@@ -33,7 +33,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 
 **Icons**: Nur das eigene Set in `src/icons/iconShapes.ts` (runde Line-Art, 24er Raster, Strich 1,8, mit kleinem Herz-/Akzent-Detail), genutzt über `<Icon name stroke accent />`. Neue Icons im gleichen Stil dort ergänzen. `lucide-react` nur für kleine Hilfs-Icons (Pfeil zurück, Stift).
 
-**Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich denk an dich" lässt Herzen aufsteigen und schickt einen Push; `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
+**Interaktionen**: `.press` = federnder Bounce beim Antippen; Kacheln lassen beim Drücken ein Herz in Bereichsfarbe aufsteigen; „Ich vermisse dich“ (Herzen) und „Umarmung“ (🤗) steigen auf und schicken einen Push; `.appear` = weiches Einblenden; dezente schwebende Glows im Hintergrund. `prefers-reduced-motion` respektieren. Vibration/Haptik gibt es in iOS-Safari nicht.
 
 **Navigation**: schwebende Pill-Leiste unten (Start, Alltag, Nachrichten, Erinnerungen). Alle Bereiche haben eigene Bereichsseiten (`/alltag`, `/nachrichten`, `/erinnerungen`, `/extras`, Komponente `AreaPage`; Extras ohne eigenen Nav-Punkt).
 
@@ -57,7 +57,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - `src/icons/` – eigenes Icon-Set (`iconShapes.ts`) und `<Icon>`/`<Heart>`-Komponenten
 - `src/pages/Dashboard.tsx` – Startseite: Zahnrad → Einstellungen, Tage-Zähler, Stimmungs-Ring, Push-Banner, „Heute bei euch“ (`src/components/TodayOverview.tsx`: Tagesfrage-Status, neueste Notiz vom Partner, fällige To-dos inkl. Wiederkehrendem, offene Einkäufe, nächster Countdown inkl. Jahrestag; lädt bei Rückkehr und jede Minute neu) und vier kompakte Bereichskacheln
 - `src/pages/FeaturePage.tsx` – generische Platzhalterseite für Features mit `status: 'geplant'`
-- `src/components/DaysCounter.tsx` – schlichter Tage-Zähler mit nur einem Knopf („Ich denk an dich“). Startdatum (`couples.start_date`) ändert man versteckt: lange auf die Zahl drücken oder in den Einstellungen (`StartDateForm` wird exportiert)
+- `src/components/DaysCounter.tsx` – schlichter Tage-Zähler mit zwei Knöpfen: „Ich vermisse dich“ (Push `miss`) und „Umarmung“ (Push `hug`). Startdatum (`couples.start_date`) ändert man versteckt: lange auf die Zahl drücken oder in den Einstellungen (`StartDateForm` wird exportiert)
 - `src/components/FeatureTile.tsx` – Kachel; `src/components/BottomNav.tsx` – Navigation
 - `src/lib/supabase.ts` – Supabase-Client; `src/lib/auth.tsx` – `AuthProvider`/`useAuth()` (Session, eigenes Profil, Partner, Paar) und deutsche Fehlermeldungen
 - `src/pages/Login.tsx` – Anmelden / Konto erstellen mit E-Mail + Passwort. Bewusst kein Magic Link: Free-Projekte können Mail-Vorlagen nicht ändern, Mails gehen ohne eigenes SMTP nur an Org-Mitglieder, und Links aus Mails öffnen auf dem iPhone Safari statt der PWA.
@@ -70,7 +70,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - Bausteine: `Sheet` (Bottom-Sheet), `SubHeader` (Zurück/Titel/Plus), `Photo`/`PhotoField`, `Empty`, `ConfirmButton` (2× tippen zum Löschen), `HeartBurst` (Herz-Konfetti)
 - `src/pages/AreaPage.tsx` – Bereichsübersicht (`/alltag`, `/nachrichten`, `/erinnerungen`, `/extras`)
 - `supabase/migrations/0003_nachrichten.sql` – `love_notes` (Text und/oder Doodle, Herz nur vom Partner via `toggle_note_heart`), `daily_questions` (150 Fragen, rotiert täglich nach deutscher Zeit), `question_answers` (Schreiben nur über `answer_today()`, nur heute, nicht änderbar; Partner-Antwort per RLS erst nach eigener Antwort bzw. nach Tagesende lesbar), `today_question()`
-- `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab), `Liebesnotizen` (Post-it-Pinnwand inkl. Doodles, Herz-Reaktion), `FrageDesTages` (verpixelte Partner-Antwort, Archiv; Partner-Antworten werden alle 20 s und bei Rückkehr nachgeladen, da RLS sie für Realtime verbirgt), `Doodle` (Komponente `DoodlePad`: 7 Farben, 3 Stärken, Radierer, Rückgängig, Leeren; PNG in Storage, erscheint auch auf der Pinnwand)
+- `src/pages/features/` – fertige Features: `Weltkarte` (Leaflet + CARTO-Kacheln, Foto-Pins, Ortssuche über Nominatim, lazy geladen), `FotoTimeline` (getrennt von der Karte, Polaroids nach Jahren, „An diesem Tag"), `Countdowns` (Jahrestag automatisch aus `start_date`, jährliche Termine, Live-Zähler), `BucketList` (Kategorien, Konfetti), `DateIdeen` (Würfel, Filter, Ideen-Pool, Wunsch-Box: Wünsche an den Partner, nur der Partner hakt „erfüllt" ab), `Liebesnotizen` (Post-it-Pinnwand inkl. Doodles, Herz-Reaktion), `FrageDesTages` (verpixelte Partner-Antwort, Archiv; Partner-Antworten werden alle 20 s und bei Rückkehr nachgeladen, da RLS sie für Realtime verbirgt), `Doodle` (Komponente `DoodlePad`: 18 Stiftfarben inkl. Weiß, 6 Papierfarben, 3 Stärken, Radierer malt in Papierfarbe, Rückgängig, Leeren; Zoom bis 5× mit zwei Fingern oder Lupen-Knöpfen, Ansicht per Canvas-Transform, Export immer ohne Zoom; PNG in Storage, erscheint auch auf der Pinnwand)
 - **Push**: `supabase/migrations/0004_push.sql` (`push_subscriptions`, `save_push_subscription(sub_endpoint, sub_p256dh, sub_auth, sub_user_agent)`), `supabase/functions/notify/index.ts` (Deno, `npm:web-push`; Typ `key` liefert den öffentlichen VAPID-Schlüssel, `test` an sich selbst, sonst an alle Geräte des Partners; Texte und Name serverseitig; 404/410-Geräte werden gelöscht; Secrets VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT; JWT-Prüfung in der Funktion selbst), `public/push-sw.js` (per `workbox.importScripts`: push + notificationclick), `src/lib/push.ts` (Status, Aktivieren nur per Antippen, `notifyPartner(type, preview)`, Abmelden löst Gerät), `src/components/PushSettings.tsx` (`PushBanner` auf der Startseite, `PushPanel` als Inhalt für `PushSheet` und Einstellungen: Test-Push, iPhone-Installationsanleitung).
 - Push-Auslöser: neue Zeilen in `love_notes`/`moments`/`places`/`countdowns`/`wishes`/`bucket_items` zentral in `useCoupleTable.insert`; zusätzlich Herz-Button, `answer_today`, „Machen wir!“ im Date-Würfel. Neue Auslöser dort bzw. per `notifyPartner` ergänzen und den Text in der Edge Function anlegen.
 - **Extras** – `supabase/migrations/0005_extras.sql`:
@@ -82,6 +82,10 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 - **Alltag** – `supabase/migrations/0006_alltag.sql` (keine Pushes, so gewünscht):
   - Einkaufsliste: `shopping_items` (`checked_at` = „Bereits im Wagen“), `shopping_memory` (pro Paar: gelernte Kategorie, Häufigkeit, `pinned` = Favorit), `shopping_remember(name, cat)`, `shopping_set_category(name, cat)`. `src/lib/shopping.ts`: 10 Kategorien in Supermarkt-Reihenfolge, deutsche Wortliste (längstes Stichwort gewinnt, Wörter ≤ 3 Zeichen nur als ganzes Wort), Gedächtnis hat Vorrang. Seite `Einkaufsliste.tsx` (Favoriten = angepinnt + oft gekauft, Doppelte werden nicht neu angelegt).
   - To-dos: `tasks` (einmalig; `assignee` null = beide, `due_on`, `important`), `chores` (wiederkehrend: täglich/wöchentlich/2-wöchentlich/monatlich, `complete_chore(id)` setzt `next_due` = später von (fällig, heute) + Intervall). Seite `ToDos.tsx` (Filter Alle/Meine/Partner, Abschnitte Wiederkehrend · Überfällig · Heute · Demnächst · Irgendwann · Erledigt, „Alles geschafft“-Banner). Komponente `Avatar` (Anfangsbuchstabe, Ich = koralle, Partner = lavendel, beide = Paar).
+- **Briefe & Wünsche** – `supabase/migrations/0007_briefe_und_wuensche.sql`:
+  - Briefe: `letters` (sender, recipient, message, optional 1 Foto, `deliver_at` mit Uhrzeit, `notified_at`, `opened_at`). Komplette Überraschung: Empfänger liest per RLS erst ab `deliver_at`. Nur über `send_letter(l_message, l_photo_path, l_deliver_at)`, `open_letter(l)`, `delete_letter(l)` (nur Absender, nur vor Zustellung). pg_cron-Job `couple-letters` alle 5 Min. → `notify` mit `{"type":"cron","job":"letters"}` → Push an den Empfänger („Ein Brief von … ist angekommen“), setzt `notified_at`. UI: `src/components/Letter.tsx` (`LetterForm`, `LetterPaper`), Abschnitt „Briefe“ + Knopf „Brief für später schreiben“ in `Liebesnotizen`, `src/components/LetterArrival.tsx` (global in `App.tsx`: ungelesene angekommene Briefe → Umschlag fliegt rein, öffnet sich, Brief erscheint; lädt beim Start, bei Rückkehr und jede Minute).
+  - Wünsche (Feature `wuensche`, Seite `Wuensche.tsx`, Icon `wish`): `needs` (Vorlagen in `src/lib/needs.ts`: Umarmungen, gemeinsame Zeit, Überraschungen, Komplimente, Unterstützung im Alltag, Zuhören, Zärtlichkeit, Date-Abend, Ruhe, eigener Text). Herz („gesehen“) nur vom Partner via `toggle_need_heart(n)`, „erfüllt“ hakt nur die Person mit dem Wunsch ab. Nicht verwechseln mit der Wunsch-Box (`wishes`) bei Date-Ideen. Offene Partner-Wünsche erscheinen auch in „Heute bei euch“.
+  - Neue Push-Typen: `miss`, `need`, `need-heart` (und Brief-Zustellung im Cron).
 - `src/lib/storage.ts` – localStorage nur für gerätebezogene Kleinigkeiten
 - `src/pages/Einstellungen.tsx` (`/einstellungen`) – Name (`profiles.display_name`), Startdatum, Benachrichtigungen, Passwort ändern (`auth.updateUser`), Fotospeicher-Anzeige (von 1 GB), „Alles exportieren“, Abmelden
 - **Datensicherung**: `src/lib/exportData.ts` (`buildExport` → ZIP mit `daten.json` + `fotos/`, jszip lazy geladen; `deliverFile` per Teilen-Menü oder Download; `storageUsage`). `.github/workflows/backup.yml`: sonntags pg_dump (public, private, auth.users) + Fotos (`scripts/backup-photos.mjs`), nur als AES-verschlüsseltes 7z hochgeladen (Repo ist öffentlich!), Secrets `SUPABASE_DB_URL`, `SUPABASE_SECRET_KEY`, `BACKUP_PASSWORD` (Einrichtung Abschnitt 8)
@@ -91,7 +95,7 @@ Alltag = peach · Nachrichten = rose · Erinnerungen = lav · Extras = sun. Feat
 
 Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anlegen, in `App.tsx` eine Route `/f/<id>` davor eintragen, in `features.ts` `status` auf `'fertig'` setzen.
 
-## Features (12)
+## Features (13)
 | Gruppe | Feature | id |
 |---|---|---|
 | Alltag zu zweit | Einkaufsliste | einkaufsliste |
@@ -99,6 +103,7 @@ Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anl
 | Nachrichten & Notizen | Liebesnotizen | liebesnotizen |
 | | Frage des Tages | frage-des-tages |
 | | Doodle / Zeichnung | doodle |
+| | Wünsche (was ich gerade brauche) | wuensche |
 | Erinnerungen | Weltkarte mit Foto-Markern (erster Kuss, erstes Date …) | weltkarte |
 | | Foto-Timeline („An diesem Tag vor X Jahren") | foto-timeline |
 | | Tage-Zähler & Jahrestage | tage-zaehler |
@@ -108,7 +113,7 @@ Ein Feature fertig bauen: eigene Seite unter `src/pages/features/<Name>.tsx` anl
 | | Zeitkapseln | zeitkapseln |
 | Startseite | Tage-Zähler, Stimmungs-Ring | – |
 
-Bewusst weggelassen: Kalender (ihr nutzt Google Calendar), Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, Sprachnachrichten, zeitversetzte Liebesnotizen.
+Bewusst weggelassen: Kalender (ihr nutzt Google Calendar), Budget, „Bin gleich da"-Standort, Face-ID-Sperre, Chat, Sprachnachrichten. (Zeitversetzte Liebesnotizen gibt es jetzt doch – als Briefe mit Zustellzeit.)
 
 ## Fahrplan
 1. ✅ Gerüst, PWA-Grundlagen, Dashboard mit Platzhalterseiten, Design-System umgesetzt
@@ -118,6 +123,7 @@ Bewusst weggelassen: Kalender (ihr nutzt Google Calendar), Budget, „Bin gleich
 5. ✅ Web Push (Service Worker + Edge Function `notify`, VAPID-Schlüssel; Einrichtung siehe `supabase/EINRICHTUNG.md` Abschnitt 5)
 6. Features einzeln: ✅ Erinnerungen (Weltkarte, Foto-Timeline, Tage & Jahrestage, Bucket List, Date-Ideen) · ✅ Nachrichten (Liebesnotizen, Frage des Tages, Doodle) · ✅ Extras (Quiz, Zeitkapseln, Stimmungs-Ring) · ✅ Alltag (Einkaufsliste, To-dos). Alle geplanten Features sind gebaut.
 7. ✅ Feinschliff: Einstellungen-Seite, Heute-Übersicht auf der Startseite, Export + wöchentliche verschlüsselte Sicherung, Bearbeiten-Funktionen, Offline-Hinweis
+8. ✅ Briefe mit Zustellzeit + Umschlag-Animation, Wünsche, „Ich vermisse dich“ + Umarmung auf der Startseite, Zeichnen mit mehr Farben und Zoom (Einrichtung: `EINRICHTUNG.md` Abschnitt 9)
 
 ## Befehle
 - `npm install` – Abhängigkeiten installieren

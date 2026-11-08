@@ -84,6 +84,15 @@ export const features: Feature[] = [
     status: 'fertig',
     planned: ['Mit dem Finger zeichnen', 'Zeichnung an den anderen schicken', 'Galerie aller Doodles'],
   },
+  {
+    id: 'wuensche',
+    title: 'Wünsche',
+    short: 'Was ich gerade brauche',
+    icon: 'wish',
+    group: 'nachrichten',
+    status: 'fertig',
+    planned: ['Wünsche wie mehr Umarmungen oder gemeinsame Zeit eintragen', 'Der andere sieht sie und gibt ein Herz', 'Erfüllte Wünsche abhaken'],
+  },
 
   // Erinnerungen
   {

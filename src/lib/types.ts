@@ -155,3 +155,26 @@ export type Chore = {
   created_by: string;
   created_at: string;
 };
+
+export type Letter = {
+  id: string;
+  couple_id: string;
+  sender: string;
+  recipient: string;
+  message: string;
+  photo_path: string | null;
+  deliver_at: string;
+  notified_at: string | null;
+  opened_at: string | null;
+  created_at: string;
+};
+
+export type Need = {
+  id: string;
+  kind: string;
+  text: string | null;
+  heart_at: string | null;
+  fulfilled_at: string | null;
+  created_by: string;
+  created_at: string;
+};

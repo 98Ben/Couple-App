@@ -81,3 +81,9 @@ export function nextOccurrence(dateIso: string, time: string | null, now: Date) 
   if (endOfTarget <= now) target = make(now.getFullYear() + 1);
   return { target, from: make(target.getFullYear() - 1) };
 }
+
+/** „Sa., 24. Dezember, 18:30 Uhr“ */
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return `${d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long' })}, ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`;
+}

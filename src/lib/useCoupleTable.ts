@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth';
 import { notifyPartner, type PushKind } from './push';
+import { needTitle } from './needs';
 import { supabase } from './supabase';
 
 // Neue Einträge in diesen Tabellen benachrichtigen den Partner
@@ -14,6 +15,8 @@ function pushFor(table: string, row: Record<string, unknown>): [PushKind, string
       return ['place', row.title as string];
     case 'countdowns':
       return ['countdown', row.title as string];
+    case 'needs':
+      return ['need', needTitle(row as { kind: string; text: string | null })];
     case 'wishes':
       return ['wish', row.text as string];
     case 'bucket_items':

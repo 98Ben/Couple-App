@@ -14,7 +14,7 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-type Kind = 'key' | 'cron' | 'test' | 'heart' | 'hug' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket' | 'quiz' | 'capsule';
+type Kind = 'key' | 'cron' | 'test' | 'heart' | 'miss' | 'hug' | 'need' | 'need-heart' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket' | 'quiz' | 'capsule';
 
 const short = (s: unknown, n = 120) => {
   const t = typeof s === 'string' ? s.trim() : '';
@@ -28,6 +28,12 @@ function message(kind: Kind, name: string, preview: string) {
       return { title: 'Push funktioniert 🎉', body: 'So sehen eure Benachrichtigungen aus.', url: '/' };
     case 'heart':
       return { title: `${name} denkt an dich 💕`, body: 'Tipp hier, um zurückzudenken.', url: '/' };
+    case 'miss':
+      return { title: `${name} vermisst dich 🥺💗`, body: 'Tipp hier, um zurückzuvermissen.', url: '/' };
+    case 'need':
+      return { title: `${name} wünscht sich etwas 💗`, body: preview || 'Schau mal bei euren Wünschen.', url: '/f/wuensche' };
+    case 'need-heart':
+      return { title: `${name} hat deinen Wunsch gesehen 💗`, body: preview || '', url: '/f/wuensche' };
     case 'hug':
       return { title: `${name} schickt dir eine Umarmung 🤗`, body: 'Fühl dich ganz fest gedrückt.', url: '/' };
     case 'quiz':
@@ -90,7 +96,7 @@ Deno.serve(async (req) => {
   const subject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:couple-app@example.com';
   if (!publicKey || !privateKey) return json({ error: 'VAPID-Schlüssel fehlen in den Secrets' }, 500);
 
-  let payload: { type?: Kind; preview?: string } = {};
+  let payload: { type?: Kind; preview?: string; job?: string } = {};
   try {
     payload = await req.json();
   } catch {
@@ -106,11 +112,41 @@ Deno.serve(async (req) => {
   });
   webpush.setVapidDetails(subject, publicKey, privateKey);
 
-  // Täglicher Zeitplan aus der Datenbank: fällige Zeitkapseln melden
+  // Zeitpläne aus der Datenbank: Briefe (alle 5 Minuten) und Zeitkapseln (täglich)
   if (kind === 'cron') {
     const secret = req.headers.get('x-cron-secret') ?? '';
     const { data: ok } = await admin.rpc('cron_secret_ok', { s: secret });
     if (!ok) return json({ error: 'Nicht erlaubt' }, 401);
+
+    if (payload.job === 'letters') {
+      const { data: due } = await admin
+        .from('letters')
+        .select('id, sender, recipient')
+        .lte('deliver_at', new Date().toISOString())
+        .is('notified_at', null)
+        .limit(50);
+      let sentLetters = 0;
+      for (const l of due ?? []) {
+        // erst markieren, damit ein überlappender Lauf nicht doppelt schickt
+        const { data: claimed } = await admin
+          .from('letters')
+          .update({ notified_at: new Date().toISOString() })
+          .eq('id', l.id)
+          .is('notified_at', null)
+          .select('id');
+        if (!claimed?.length) continue;
+        const { data: from } = await admin.from('profiles').select('display_name').eq('id', l.sender).maybeSingle();
+        const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('user_id', l.recipient);
+        const body = JSON.stringify({
+          title: `Ein Brief von ${from?.display_name ?? 'deinem Schatz'} ist angekommen 💌`,
+          body: 'Öffne die App, um ihn zu lesen.',
+          url: '/',
+          tag: `letter-${l.id}`,
+        });
+        sentLetters += await deliver(admin, subs ?? [], body);
+      }
+      return json({ letters: (due ?? []).length, sent: sentLetters });
+    }
     const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
     const { data: due } = await admin.from('capsules').select('id, couple_id, title').lte('open_on', today).is('notified_at', null);
     let sentCron = 0;

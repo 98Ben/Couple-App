@@ -123,6 +123,12 @@ const shapes: Record<string, (c: string, a: string) => string> = {
     p('M12 9c1.8-3.6 5.6-4.6 6.2-2.4.5 1.8-3.2 2.4-6.2 2.4Z') +
     heart(16.6, 15.4, 4.4, a),
 
+  wish: (c, a) =>
+    p('M14.6 3.4l1.8 3.6 4 .6-2.9 2.8.7 3.9-3.6-1.9-3.6 1.9.7-3.9-2.9-2.8 4-.6Z') +
+    p('M3.6 12.4 8 11.2') +
+    p('M8.2 17.4l2.6-2.8') +
+    heart(5.6, 18.6, 4.8, a),
+
   gamepad: (c, a) =>
     p('M7 7.5h10a4.5 4.5 0 0 1 4.3 5.8l-1 3.4a2.6 2.6 0 0 1-4.4 1L14.3 16H9.7l-1.6 1.7a2.6 2.6 0 0 1-4.4-1l-1-3.4A4.5 4.5 0 0 1 7 7.5Z') +
     p('M7.6 10.4v3.2') +
@@ -132,7 +138,7 @@ const shapes: Record<string, (c: string, a: string) => string> = {
 
 export type IconName =
   | 'home' | 'plane' | 'polaroid' | 'balloon' | 'bag' | 'checklist' | 'calendar' | 'chat' | 'letter'
-  | 'question' | 'doodle' | 'mic' | 'globe' | 'photos' | 'hourglass' | 'sparkle' | 'dice' | 'gamepad' | 'gift';
+  | 'question' | 'doodle' | 'mic' | 'globe' | 'photos' | 'hourglass' | 'sparkle' | 'dice' | 'gamepad' | 'gift' | 'wish';
 
 export const HEART_PATH = HEART_D;
 

@@ -4,15 +4,16 @@ import BottomNav from '../../components/BottomNav';
 import ConfirmButton from '../../components/ConfirmButton';
 import Empty from '../../components/Empty';
 import HeartBurst from '../../components/HeartBurst';
+import { LetterForm, LetterPaper } from '../../components/Letter';
 import NoteCard, { NOTE_COLORS } from '../../components/NoteCard';
 import { Photo } from '../../components/Photo';
 import Sheet from '../../components/Sheet';
 import SubHeader from '../../components/SubHeader';
 import { useAuth } from '../../lib/auth';
-import { relativeTime, plural } from '../../lib/dates';
+import { formatDateTime, relativeTime, plural } from '../../lib/dates';
 import { removePhoto } from '../../lib/photos';
 import { supabase } from '../../lib/supabase';
-import type { LoveNote, NoteColor } from '../../lib/types';
+import type { Letter, LoveNote, NoteColor } from '../../lib/types';
 import { useCoupleTable } from '../../lib/useCoupleTable';
 import { Heart, Icon } from '../../icons/Icon';
 import { tones } from '../../theme';
@@ -32,6 +33,18 @@ export default function Liebesnotizen() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(0);
   const [viewing, setViewing] = useState<LoveNote | null>(null);
+  const letters = useCoupleTable<Letter>('letters', { column: 'deliver_at', ascending: false });
+  const [writing, setWriting] = useState(false);
+  const [letterSent, setLetterSent] = useState<string | null>(null);
+  const [reading, setReading] = useState<Letter | null>(null);
+  const now = Date.now();
+
+  const recall = async (l: Letter) => {
+    const { data, error } = await supabase.rpc('delete_letter', { l: l.id });
+    setReading(null);
+    if (!error) await removePhoto(data as string | null);
+    letters.reload();
+  };
 
   const send = async (e: FormEvent) => {
     e.preventDefault();
@@ -125,6 +138,40 @@ export default function Liebesnotizen() {
           </div>
         </form>
 
+        <button className="secondary-btn press letter-cta appear" onClick={() => setWriting(true)}>
+          ✉️ Brief für später schreiben
+        </button>
+        {letterSent && (
+          <p className="toast" role="status">
+            Dein Brief ist unterwegs und kommt {formatDateTime(letterSent)} an. Pssst! 🤫
+          </p>
+        )}
+
+        {letters.rows.length > 0 && (
+          <section className="letters" aria-label="Briefe">
+            <h2 className="section-title">Briefe</h2>
+            {letters.rows.map((l) => {
+              const mine = l.sender === myId;
+              const sealed = new Date(l.deliver_at).getTime() > now;
+              const title = mine ? (sealed ? `Unterwegs an ${partnerName}` : `An ${partnerName}`) : `Von ${partnerName}`;
+              const sub = sealed
+                ? `kommt ${formatDateTime(l.deliver_at)}`
+                : mine
+                  ? `${l.opened_at ? 'gelesen' : 'noch ungelesen'} · angekommen ${relativeTime(l.deliver_at)}`
+                  : `angekommen ${relativeTime(l.deliver_at)}`;
+              return (
+                <button key={l.id} className={`letter-row press${sealed ? ' sealed' : ''}`} onClick={() => setReading(l)}>
+                  <span className={`env-mini${!sealed && l.opened_at ? ' open' : ''}`} aria-hidden="true" />
+                  <span className="today-text">
+                    <span className="today-main">{title}</span>
+                    <span className="today-sub">{sub}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </section>
+        )}
+
         {notes.error && <p className="form-error">{notes.error}</p>}
         {!notes.loading && notes.rows.length === 0 && (
           <Empty
@@ -150,6 +197,33 @@ export default function Liebesnotizen() {
         </section>
       </main>
       <BottomNav active="nachrichten" />
+
+      <Sheet open={writing} onClose={() => setWriting(false)} title="Brief für später">
+        {writing && (
+          <LetterForm
+            onSent={(at) => {
+              setWriting(false);
+              setLetterSent(at);
+              letters.reload();
+              window.setTimeout(() => setLetterSent(null), 6000);
+            }}
+          />
+        )}
+      </Sheet>
+
+      <Sheet open={!!reading} onClose={() => setReading(null)} title={reading ? (reading.sender === myId ? 'Dein Brief' : `Brief von ${partnerName}`) : ''}>
+        {reading && (
+          <div className="detail">
+            <LetterPaper letter={reading} from={reading.sender === myId ? me?.display_name ?? 'dir' : partnerName} />
+            {reading.sender === myId && new Date(reading.deliver_at).getTime() > Date.now() && (
+              <div className="detail-actions">
+                <p className="form-hint">Noch ist er nicht angekommen – du kannst ihn zurückholen.</p>
+                <ConfirmButton onConfirm={() => recall(reading)} label="Zurückholen" />
+              </div>
+            )}
+          </div>
+        )}
+      </Sheet>
 
       <Sheet open={!!viewing} onClose={() => setViewing(null)} title={viewing ? (viewing.created_by === myId ? 'Deine Notiz' : `Von ${partnerName}`) : ''}>
         {viewing && (

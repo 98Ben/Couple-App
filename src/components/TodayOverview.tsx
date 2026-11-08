@@ -5,6 +5,7 @@ import { Icon } from '../icons/Icon';
 import type { IconName } from '../icons/iconShapes';
 import { useAuth } from '../lib/auth';
 import { at, berlinToday, nextOccurrence, plural, relativeTime } from '../lib/dates';
+import { needTitle } from '../lib/needs';
 import { supabase } from '../lib/supabase';
 import type { Countdown, LoveNote } from '../lib/types';
 import { tones, type ToneKey } from '../theme';
@@ -17,6 +18,7 @@ type Data = {
   todos: number;
   next: { title: string; emoji: string; days: number } | null;
   note: LoveNote | null;
+  need: { title: string; count: number; seen: boolean } | null;
 };
 
 function daysTo(target: Date) {
@@ -34,14 +36,16 @@ export default function TodayOverview() {
 
   const load = useCallback(async () => {
     const today = berlinToday();
-    const [q, shop, tasks, chores, cds, note] = await Promise.all([
+    const [q, shop, tasks, chores, cds, note, needs] = await Promise.all([
       supabase.rpc('today_question'),
       supabase.from('shopping_items').select('id', { count: 'exact', head: true }).is('checked_at', null),
       supabase.from('tasks').select('id', { count: 'exact', head: true }).is('done_at', null).lte('due_on', today),
       supabase.from('chores').select('id', { count: 'exact', head: true }).lte('next_due', today),
       supabase.from('countdowns').select('title, target_date, target_time, emoji, yearly'),
       supabase.from('love_notes').select('*').neq('created_by', myId ?? '').order('created_at', { ascending: false }).limit(1),
+      supabase.from('needs').select('kind, text, heart_at').neq('created_by', myId ?? '').is('fulfilled_at', null).order('created_at', { ascending: false }),
     ]);
+    const needRows = (needs.data as { kind: string; text: string | null; heart_at: string | null }[] | null) ?? [];
 
     const qRow = ((q.data as { i_answered: boolean; partner_answered: boolean }[] | null) ?? [])[0];
 
@@ -66,6 +70,7 @@ export default function TodayOverview() {
       todos: (tasks.count ?? 0) + (chores.count ?? 0),
       next: first ? { title: first.title, emoji: first.emoji, days: daysTo(first.target) } : null,
       note: ((note.data as LoveNote[] | null) ?? [])[0] ?? null,
+      need: needRows.length ? { title: needTitle(needRows[0]), count: needRows.length, seen: needRows.every((n) => n.heart_at) } : null,
     });
   }, [myId, couple?.start_date]);
 
@@ -108,6 +113,18 @@ export default function TodayOverview() {
       title: n.text ? `„${n.text.length > 42 ? `${n.text.slice(0, 40).trim()} …` : n.text}“` : `${name} hat dir etwas gemalt`,
       sub: `Neueste Notiz von ${name} · ${relativeTime(n.created_at)}`,
       hot: !n.heart_at && Date.now() - new Date(n.created_at).getTime() < 86400000,
+    });
+  }
+
+  if (data.need) {
+    items.push({
+      key: 'wunsch',
+      to: '/f/wuensche',
+      icon: 'wish',
+      tone: 'rose',
+      title: `${name} wünscht sich: ${data.need.title}`,
+      sub: data.need.count > 1 ? `und ${plural(data.need.count - 1, 'weiteren Wunsch', 'weitere Wünsche')}` : data.need.seen ? 'Du hast schon ein Herz gegeben 💗' : 'Tipp, um ein Herz zu geben',
+      hot: !data.need.seen,
     });
   }
 
