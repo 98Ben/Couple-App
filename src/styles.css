@@ -947,3 +947,15 @@ button { font: inherit; color: inherit; }
 .zoom-btn { min-width: 36px; height: 36px; padding: 0 8px; border: 0; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.88); color: var(--text); box-shadow: 0 3px 10px rgba(58, 46, 57, 0.15); cursor: pointer; font: inherit; font-size: 13px; font-weight: 900; }
 .zoom-btn:disabled { opacity: 0.45; }
 .field-label { margin: 4px 0 -4px; font-size: 15px; font-weight: 800; }
+/* Quiz: klarer Status beim Aufdecken */
+.quiz-status { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 22px; background: #fff; box-shadow: 0 8px 22px rgba(255, 194, 61, 0.16); font-size: 15px; font-weight: 600; line-height: 1.45; }
+.quiz-status.todo { background: linear-gradient(135deg, #FFE7A3, #FFD166); box-shadow: 0 10px 24px rgba(255, 194, 61, 0.35); }
+.quiz-status strong { font-weight: 900; }
+.quiz-progress { display: flex; gap: 6px; }
+.quiz-progress span { flex: 1; height: 6px; border-radius: 3px; background: rgba(58, 46, 57, 0.15); }
+.quiz-progress span.done { background: var(--text); }
+.reveal-card.open { box-shadow: 0 0 0 2px #FFD166, 0 8px 22px rgba(255, 194, 61, 0.22); }
+.reveal-card.compact { gap: 4px; padding: 12px 14px; box-shadow: 0 4px 14px rgba(255, 194, 61, 0.12); }
+.reveal-card.compact p { margin: 0; font-weight: 700; font-size: 14px; }
+.verdict { border: 0; font: inherit; font-weight: 800; cursor: pointer; }
+.quiz-result { gap: 8px; }

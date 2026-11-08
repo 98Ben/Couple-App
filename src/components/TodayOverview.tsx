@@ -19,6 +19,7 @@ type Data = {
   next: { title: string; emoji: string; days: number } | null;
   note: LoveNote | null;
   need: { title: string; count: number; seen: boolean } | null;
+  quiz: { mine: boolean; partner: boolean; toJudge: number } | null;
 };
 
 function daysTo(target: Date) {
@@ -36,7 +37,7 @@ export default function TodayOverview() {
 
   const load = useCallback(async () => {
     const today = berlinToday();
-    const [q, shop, tasks, chores, cds, note, needs] = await Promise.all([
+    const [q, shop, tasks, chores, cds, note, needs, quizR] = await Promise.all([
       supabase.rpc('today_question'),
       supabase.from('shopping_items').select('id', { count: 'exact', head: true }).is('checked_at', null),
       supabase.from('tasks').select('id', { count: 'exact', head: true }).is('done_at', null).lte('due_on', today),
@@ -44,7 +45,26 @@ export default function TodayOverview() {
       supabase.from('countdowns').select('title, target_date, target_time, emoji, yearly'),
       supabase.from('love_notes').select('*').neq('created_by', myId ?? '').order('created_at', { ascending: false }).limit(1),
       supabase.from('needs').select('kind, text, heart_at').neq('created_by', myId ?? '').is('fulfilled_at', null).order('created_at', { ascending: false }),
+      supabase.from('quiz_rounds').select('id, submitted').is('finished_at', null).order('created_at', { ascending: false }).limit(1),
     ]);
+    // Quiz: Bin ich gerade dran? (Antworten oder Tipps des Partners bewerten)
+    let quiz: Data['quiz'] = null;
+    const round = ((quizR.data as { id: string; submitted: string[] }[] | null) ?? [])[0];
+    if (round && myId) {
+      const mine = round.submitted.includes(myId);
+      const partnerDone = round.submitted.some((u) => u !== myId);
+      let toJudge = 0;
+      if (mine && partnerDone) {
+        const { count } = await supabase
+          .from('quiz_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('round_id', round.id)
+          .neq('user_id', myId)
+          .is('guess_correct', null);
+        toJudge = count ?? 0;
+      }
+      quiz = { mine, partner: partnerDone, toJudge };
+    }
     const needRows = (needs.data as { kind: string; text: string | null; heart_at: string | null }[] | null) ?? [];
 
     const qRow = ((q.data as { i_answered: boolean; partner_answered: boolean }[] | null) ?? [])[0];
@@ -70,6 +90,7 @@ export default function TodayOverview() {
       todos: (tasks.count ?? 0) + (chores.count ?? 0),
       next: first ? { title: first.title, emoji: first.emoji, days: daysTo(first.target) } : null,
       note: ((note.data as LoveNote[] | null) ?? [])[0] ?? null,
+      quiz,
       need: needRows.length ? { title: needTitle(needRows[0]), count: needRows.length, seen: needRows.every((n) => n.heart_at) } : null,
     });
   }, [myId, couple?.start_date]);
@@ -100,6 +121,19 @@ export default function TodayOverview() {
       title: !i ? 'Frage des Tages wartet auf dich' : p ? 'Ihr habt beide geantwortet' : `Warte auf ${name}s Antwort`,
       sub: !i ? (p ? `${name} hat schon geantwortet 👀` : 'Antworte zuerst, dann siehst du die andere Antwort') : p ? 'Schau mal, was geantwortet wurde' : 'Du hast schon geantwortet',
       hot: !i,
+    });
+  }
+
+  if (data.quiz && (!data.quiz.mine || data.quiz.toJudge > 0)) {
+    const z = data.quiz;
+    items.push({
+      key: 'quiz',
+      to: '/f/quiz',
+      icon: 'dice',
+      tone: 'sun',
+      title: 'Du bist beim Quiz dran 🎲',
+      sub: !z.mine ? (z.partner ? `${name} hat schon geantwortet` : 'Eine Runde wartet auf dich') : `Bewerte noch ${plural(z.toJudge, 'Tipp', 'Tipps')} von ${name}`,
+      hot: true,
     });
   }
 

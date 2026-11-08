@@ -14,7 +14,7 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-type Kind = 'key' | 'cron' | 'test' | 'heart' | 'miss' | 'hug' | 'need' | 'need-heart' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket' | 'quiz' | 'capsule';
+type Kind = 'key' | 'cron' | 'test' | 'heart' | 'miss' | 'hug' | 'need' | 'need-heart' | 'note' | 'doodle' | 'answer' | 'moment' | 'place' | 'countdown' | 'wish' | 'bucket' | 'quiz' | 'quiz-judge' | 'quiz-done' | 'capsule';
 
 const short = (s: unknown, n = 120) => {
   const t = typeof s === 'string' ? s.trim() : '';
@@ -38,6 +38,10 @@ function message(kind: Kind, name: string, preview: string) {
       return { title: `${name} schickt dir eine Umarmung 🤗`, body: 'Fühl dich ganz fest gedrückt.', url: '/' };
     case 'quiz':
       return { title: `${name} hat die Quiz-Runde gespielt 🎲`, body: 'Du bist dran! Wer kennt wen besser?', url: '/f/quiz' };
+    case 'quiz-judge':
+      return { title: `${name} hat deine Quiz-Tipps bewertet 🎲`, body: 'Jetzt bist du dran: Bewerte die Tipps über dich.', url: '/f/quiz' };
+    case 'quiz-done':
+      return { title: 'Die Quiz-Runde ist fertig 🏆', body: `${name} hat als Letztes bewertet. Schau dir das Ergebnis an!`, url: '/f/quiz' };
     case 'capsule':
       return { title: `${name} hat eine Zeitkapsel versiegelt 🎁`, body: preview ? `Sie öffnet sich am ${preview}.` : 'Ihr dürft sie erst später öffnen.', url: '/f/zeitkapseln' };
     case 'note':
