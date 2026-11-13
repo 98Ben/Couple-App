@@ -89,3 +89,8 @@ Nebeneffekt: Der wöchentliche Zugriff hält das Supabase-Projekt wach (kostenlo
 **b) Edge Function aktualisieren:** **Edge Functions → notify → Code** komplett durch die neue `functions/notify/index.ts` ersetzen und **Deploy** klicken („Verify JWT“ bleibt aus). Ohne diesen Schritt kommen keine Benachrichtigungen für angekommene Briefe, „Ich vermisse dich“ und neue Wünsche.
 
 **Nachtrag Quiz (8. Nov.):** Die Edge Function `notify` kennt zwei neue Benachrichtigungen („… hat deine Quiz-Tipps bewertet“, „Die Quiz-Runde ist fertig“). Dafür den Code von `functions/notify/index.ts` noch einmal komplett einfügen und **Deploy** klicken. Die Datenbank muss nicht geändert werden.
+
+## 10. Mehr Stimmungen, Quiz-Antworten ändern (13. Nov.)
+
+`migrations/0008_stimmungen_quiz_aendern.sql` im SQL Editor ausführen. Die Edge Function muss nicht geändert werden.
+Ohne diesen Schritt lassen sich die 6 neuen Stimmungen nicht speichern, und „Meine Antworten ändern“ im Quiz meldet einen Fehler.

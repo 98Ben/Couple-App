@@ -103,7 +103,7 @@ export type QuizEntry = {
   guess_correct: boolean | null;
 };
 
-export type MoodKey = 'energie' | 'kuschelig' | 'muede' | 'gestresst' | 'entspannt' | 'gluecklich' | 'nachdenklich' | 'krank';
+export type MoodKey = 'energie' | 'kuschelig' | 'muede' | 'gestresst' | 'entspannt' | 'gluecklich' | 'nachdenklich' | 'krank' | 'aufgeregt' | 'sehnsucht' | 'traurig' | 'genervt' | 'dankbar' | 'albern';
 
 export type Mood = { user_id: string; mood: MoodKey; day: string; updated_at: string };
 

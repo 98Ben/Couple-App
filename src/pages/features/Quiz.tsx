@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, Pencil, X } from 'lucide-react';
 import BottomNav from '../../components/BottomNav';
 import HeartBurst from '../../components/HeartBurst';
 import SubHeader from '../../components/SubHeader';
@@ -201,16 +201,37 @@ function RoundView({
 }) {
   const iSubmitted = round.submitted.includes(myId);
   const partnerSubmitted = round.submitted.includes(partnerId);
+  const [editing, setEditing] = useState(false);
 
   if (!iSubmitted) return <AnswerForm round={round} questions={questions} partnerName={partnerName} partnerSubmitted={partnerSubmitted} onDone={onChanged} />;
 
   if (!partnerSubmitted) {
+    const own = entries.filter((e) => e.user_id === myId);
+    if (editing)
+      return (
+        <AnswerForm
+          round={round}
+          questions={questions}
+          partnerName={partnerName}
+          partnerSubmitted={false}
+          initial={own}
+          onCancel={() => setEditing(false)}
+          onDone={async () => {
+            await onChanged();
+            setEditing(false);
+          }}
+        />
+      );
     return (
       <section className="card quiz-wait appear">
         <p className="placeholder-head">Abgegeben! 🎉</p>
         <p className="answer-wait center">
           <span className="dot-pulse" aria-hidden="true" /> Jetzt ist {partnerName} dran. Sobald ihr beide fertig seid, wird aufgedeckt – du bekommst dann eine Benachrichtigung.
         </p>
+        <button className="secondary-btn press" onClick={() => setEditing(true)}>
+          <Pencil size={16} style={{ verticalAlign: '-2px' }} /> Meine Antworten ändern
+        </button>
+        <p className="form-hint center">Geht, bis {partnerName} auch abgegeben hat.</p>
       </section>
     );
   }
@@ -273,16 +294,21 @@ function AnswerForm({
   questions,
   partnerName,
   partnerSubmitted,
+  initial,
+  onCancel,
   onDone,
 }: {
   round: QuizRound;
   questions: Map<number, string>;
   partnerName: string;
   partnerSubmitted: boolean;
+  initial?: QuizEntry[];
+  onCancel?: () => void;
   onDone: () => Promise<void>;
 }) {
-  const [own, setOwn] = useState<Record<number, string>>({});
-  const [guess, setGuess] = useState<Record<number, string>>({});
+  const editMode = !!initial;
+  const [own, setOwn] = useState<Record<number, string>>(() => Object.fromEntries((initial ?? []).map((e) => [e.question_id, e.own_answer])));
+  const [guess, setGuess] = useState<Record<number, string>>(() => Object.fromEntries((initial ?? []).map((e) => [e.question_id, e.guess])));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const complete = round.question_ids.every((q) => own[q]?.trim() && guess[q]?.trim());
@@ -293,13 +319,14 @@ function AnswerForm({
     setBusy(true);
     setError(null);
     const answers = round.question_ids.map((q) => ({ question_id: q, own: own[q].trim(), guess: guess[q].trim() }));
-    const { error } = await supabase.rpc('quiz_submit', { r: round.id, answers });
+    const { error } = await supabase.rpc(editMode ? 'quiz_update' : 'quiz_submit', { r: round.id, answers });
     if (error) {
-      setError(deutscherFehler(error.message));
+      setError(error.message.includes('aufgedeckt') ? `${partnerName} hat inzwischen auch abgegeben – jetzt wird aufgedeckt.` : deutscherFehler(error.message));
       setBusy(false);
+      if (editMode) await onDone();
       return;
     }
-    notifyPartner('quiz');
+    if (!editMode) notifyPartner('quiz');
     await onDone();
     setBusy(false);
   };
@@ -323,8 +350,13 @@ function AnswerForm({
       ))}
       {error && <p className="form-error">{error}</p>}
       <button className="primary-btn press" disabled={busy || !complete}>
-        {busy ? 'Wird abgegeben …' : complete ? 'Abgeben' : 'Alle Felder ausfüllen'}
+        {busy ? (editMode ? 'Wird gespeichert …' : 'Wird abgegeben …') : !complete ? 'Alle Felder ausfüllen' : editMode ? 'Änderungen speichern' : 'Abgeben'}
       </button>
+      {onCancel && (
+        <button type="button" className="secondary-btn press" onClick={onCancel} disabled={busy}>
+          Abbrechen
+        </button>
+      )}
     </form>
   );
 }

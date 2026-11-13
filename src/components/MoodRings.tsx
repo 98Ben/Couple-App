@@ -17,6 +17,12 @@ export const MOODS: Record<MoodKey, { label: string; emoji: string; from: string
   muede: { label: 'Übermüdet, braucht Kaffee', emoji: '☕', from: '#E3BF94', to: '#F3DEC4' },
   gestresst: { label: 'Gestresst', emoji: '😵‍💫', from: '#C9A7EB', to: '#E4D0F7' },
   krank: { label: 'Nicht so fit', emoji: '🤒', from: '#A8DDC0', to: '#D4F0E0' },
+  aufgeregt: { label: 'Aufgeregt & voller Vorfreude', emoji: '🤩', from: '#FF8E85', to: '#FFD166' },
+  sehnsucht: { label: 'Vermisst dich', emoji: '🥺', from: '#FFC6FF', to: '#FFE0F0' },
+  traurig: { label: 'Ein bisschen traurig', emoji: '😢', from: '#8FB3E0', to: '#C7DAF2' },
+  genervt: { label: 'Genervt', emoji: '😤', from: '#F28B82', to: '#F9C3BE' },
+  dankbar: { label: 'Dankbar', emoji: '🙏', from: '#F6C77B', to: '#FBE5BF' },
+  albern: { label: 'Albern & verspielt', emoji: '🤪', from: '#9EE09E', to: '#FFE58A' },
 };
 
 function Ring({ mood, size = 92 }: { mood: MoodKey | null; size?: number }) {
@@ -95,7 +101,7 @@ export default function MoodRings() {
         <div className="mood-grid">
           {(Object.keys(MOODS) as MoodKey[]).map((k) => (
             <button key={k} className={`mood-option press${mine?.mood === k ? ' on' : ''}`} onClick={() => choose(k)} aria-pressed={mine?.mood === k}>
-              <Ring mood={k} size={56} />
+              <Ring mood={k} size={46} />
               <span>{MOODS[k].label}</span>
             </button>
           ))}
@@ -148,7 +154,7 @@ function PartnerMood({ mood, partnerName, onDone }: { mood: Mood | null; partner
           <p className="detail-note">
             {mood ? (
               <>
-                fühlt sich heute <strong>{MOODS[mood.mood].label.toLowerCase()}</strong>
+                Stimmung heute: <strong>{MOODS[mood.mood].label}</strong>
               </>
             ) : (
               'hat heute noch keine Stimmung gewählt.'
